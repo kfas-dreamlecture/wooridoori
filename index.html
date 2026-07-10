@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>우리 가계부</title>
+<style>
+  :root {
+    --bg: #f5f5f5;
+    --surface: #ffffff;
+    --surface2: #f9f9f9;
+    --border: #e8e8e8;
+    --text: #1a1a1a;
+    --text2: #6b6b6b;
+    --text3: #aaaaaa;
+    --accent: #3b82f6;
+    --accent-bg: #eff6ff;
+    --accent-text: #1d4ed8;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --warning-bg: #fffbeb;
+    --warning-text: #92400e;
+    --pro: #7c3aed;
+    --pro-bg: #f5f3ff;
+    --pro-text: #5b21b6;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: var(--bg); display: flex; justify-content: center; min-height: 100vh; }
+  .app { width: 100%; max-width: 430px; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.show { display: flex; }
+
+  /* ── ONBOARDING ── */
+  .ob-wrap { padding: 40px 24px 32px; display: flex; flex-direction: column; flex: 1; }
+  .ob-logo { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .ob-sub { font-size: 13px; color: var(--text2); margin-bottom: 32px; }
+  .ob-info { background: var(--accent-bg); border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; }
+  .ob-info-title { font-size: 12px; font-weight: 600; color: var(--accent-text); margin-bottom: 4px; }
+  .ob-info-body { font-size: 11px; color: var(--accent-text); line-height: 1.6; }
+  .divider-text { text-align: center; font-size: 12px; color: var(--text3); margin: 14px 0; }
+
+  /* ── TOPBAR ── */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 0; background: var(--surface); flex-shrink: 0; }
+  .tb-month { font-size: 17px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; }
+  .tb-month button { background: none; border: none; font-size: 18px; color: var(--text2); cursor: pointer; padding: 2px 6px; }
+  .tb-actions { display: flex; gap: 8px; }
+  .pill { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .pill.accent { background: var(--accent-bg); color: var(--accent-text); border-color: #bfdbfe; }
+
+  /* ── NAV ── */
+  .bot-nav { display: flex; background: var(--surface); border-top: 1px solid var(--border); padding: 6px 0 calc(env(safe-area-inset-bottom) + 6px); flex-shrink: 0; }
+  .bnav { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; color: var(--text3); font-size: 10px; cursor: pointer; padding: 4px 0; }
+  .bnav svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .bnav.active { color: var(--accent); }
+
+  /* ── SUB TABS ── */
+  .sub-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 16px; }
+  .sub-tab { padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; }
+  .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── SUMMARY BAR ── */
+  .sum-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; margin: 10px 12px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; flex-shrink: 0; }
+  .sc { text-align: center; padding: 10px 4px; }
+  .sc + .sc { border-left: 1px solid var(--border); }
+  .sc-label { font-size: 10px; color: var(--text2); margin-bottom: 3px; }
+  .sc-val { font-size: 13px; font-weight: 600; color: var(--text); }
+  .sc-val.inc { color: var(--success); }
+  .sc-val.exp { color: var(--danger); }
+
+  /* ── CALENDAR ── */
+  .cal-wrap { padding: 0 12px 4px; flex-shrink: 0; }
+  .cal-dows { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 2px; }
+  .cal-dow { text-align: center; font-size: 10px; color: var(--text3); padding: 2px 0; }
+  .cal-dow:first-child { color: #ef4444; }
+  .cal-dow:last-child { color: #3b82f6; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+  .cc { min-height: 44px; display: flex; flex-direction: column; align-items: center; padding: 2px 0; cursor: pointer; border-radius: 8px; }
+  .cc:active { background: var(--bg); }
+  .dn { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; color: var(--text); }
+  .cc.sel .dn { background: var(--text); color: #fff; }
+  .cc.tod .dn { color: var(--accent); font-weight: 600; }
+  .cc.sun .dn { color: #ef4444; }
+  .cc.sat .dn { color: #3b82f6; }
+  .cc.other .dn { color: var(--text3); }
+  .da { font-size: 9px; color: var(--danger); margin-top: 0; line-height: 1; }
+  .da.pos { color: var(--success); }
+  .evt-dot-row { display: flex; gap: 2px; margin-top: 1px; justify-content: center; }
+  .evt-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+  /* ── TX LIST ── */
+  .tx-area { flex: 1; overflow-y: auto; padding: 0 12px 90px; -webkit-overflow-scrolling: touch; }
+  .date-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; background: var(--accent-bg); color: var(--accent-text); border-radius: 20px; margin: 10px 0 6px; }
+  .tx-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .tx-item:last-of-type { border-bottom: none; }
+  .tx-ico { width: 36px; height: 36px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .tx-body { flex: 1; min-width: 0; }
+  .tx-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-tags { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+  .tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: var(--bg); color: var(--text2); }
+  .tag.person { background: var(--warning-bg); color: var(--warning-text); }
+  .tx-amt { font-size: 13px; font-weight: 600; color: var(--danger); flex-shrink: 0; }
+  .tx-amt.inc { color: var(--success); }
+  .tx-empty { text-align: center; padding: 20px 0 10px; color: var(--text3); font-size: 12px; line-height: 2; }
+  .reg-btn { width: 100%; margin-top: 10px; padding: 11px; background: var(--surface); border: 1.5px dashed var(--border); border-radius: 10px; font-size: 12px; color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .reg-btn:active { background: var(--bg); }
+
+  /* ── PRIVATE BANNER ── */
+  .priv-bar { margin: 8px 12px 0; background: var(--pro-bg); border-radius: 8px; padding: 7px 12px; font-size: 11px; color: var(--pro-text); flex-shrink: 0; }
+
+  /* ── STATS ── */
+  .stat-area { flex: 1; overflow-y: auto; padding: 10px 12px 90px; }
+  .stat-switch { display: flex; background: var(--bg); border-radius: 8px; padding: 2px; margin-bottom: 12px; }
+  .sw-btn { flex: 1; padding: 6px; text-align: center; font-size: 12px; font-weight: 500; color: var(--text2); border: none; background: none; border-radius: 6px; cursor: pointer; }
+  .sw-btn.active { background: var(--surface); color: var(--text); }
+  .metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .metric { background: var(--surface); border-radius: 10px; padding: 12px 14px; }
+  .metric-label { font-size: 10px; color: var(--text2); margin-bottom: 3px; }
+  .metric-val { font-size: 16px; font-weight: 600; }
+  .sg-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .sg-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: none; font-size: 11px; cursor: pointer; color: var(--text2); }
+  .sg-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .bar-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .bar-row:last-child { border-bottom: none; }
+  .bar-body { flex: 1; }
+  .bar-label { font-size: 12px; color: var(--text); margin-bottom: 3px; }
+  .bar-track { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+  .bar-val { font-size: 12px; font-weight: 600; color: var(--danger); white-space: nowrap; }
+
+  /* ── CALENDAR TAB ── */
+  .cal-tab-body { display: flex; flex-direction: column; flex: 1; overflow: hidden; background: var(--surface); }
+  .cal-tab-hdr { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 4px; flex-shrink: 0; }
+  .cal-tab-hdr span { font-size: 12px; color: var(--text2); }
+  .evt-area { flex: 1; overflow-y: auto; padding: 0 12px 90px; }
+  .evt-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .evt-item:last-child { border-bottom: none; }
+  .evt-bullet { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .evt-body { flex: 1; }
+  .evt-title { font-size: 13px; color: var(--text); }
+  .evt-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .evt-who-tag { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 8px; margin-top: 3px; }
+
+  /* ── ASSETS ── */
+  .asset-area { flex: 1; overflow-y: auto; padding: 10px 12px 90px; }
+  .total-card { background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .total-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .total-val { font-size: 24px; font-weight: 700; color: var(--text); }
+  .person-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .person-card { border-radius: 10px; padding: 12px 14px; }
+  .person-card.me { background: var(--accent-bg); }
+  .person-card.partner { background: var(--pro-bg); }
+  .person-card-name { font-size: 10px; font-weight: 600; margin-bottom: 3px; }
+  .person-card.me .person-card-name { color: var(--accent-text); }
+  .person-card.partner .person-card-name { color: var(--pro-text); }
+  .person-card-val { font-size: 16px; font-weight: 700; }
+  .person-card.me .person-card-val { color: var(--accent-text); }
+  .person-card.partner .person-card-val { color: var(--pro-text); }
+  .asset-card { background: var(--surface); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .asset-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .asset-body { flex: 1; min-width: 0; }
+  .asset-type-tag { font-size: 10px; padding: 1px 7px; border-radius: 8px; display: inline-block; margin-bottom: 3px; }
+  .asset-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .asset-memo { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .asset-amt { font-size: 14px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+
+  /* ── MODALS ── */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 18px 16px calc(env(safe-area-inset-bottom) + 28px); width: 100%; max-width: 430px; max-height: 92vh; overflow-y: auto; }
+  .modal-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); line-height: 1; }
+  .f-label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 4px; margin-top: 10px; }
+  .f-input { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--bg); color: var(--text); -webkit-appearance: none; }
+  .f-input:focus { outline: none; border-color: var(--accent); }
+  .f2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .type-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .type-btn { flex: 1; padding: 9px; border-radius: var(--radius); border: 1px solid var(--border); background: none; font-size: 13px; cursor: pointer; color: var(--text2); }
+  .type-btn.ae { background: var(--danger-bg); color: var(--danger); border-color: #fecaca; font-weight: 600; }
+  .type-btn.ai { background: var(--success-bg); color: var(--success); border-color: #bbf7d0; font-weight: 600; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  .chip { font-size: 11px; padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; }
+  .chip.sel { background: var(--accent-bg); color: var(--accent-text); border-color: #bfdbfe; font-weight: 500; }
+  .save-btn { width: 100%; padding: 13px; background: var(--text); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+  .save-btn:active { opacity: 0.85; }
+  .btn-outline { width: 100%; padding: 11px; background: none; color: var(--text); border: 1px solid var(--border); border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; }
+  .code-box { background: var(--bg); border-radius: 12px; padding: 14px; text-align: center; margin: 10px 0; }
+  .code-val { font-size: 28px; font-weight: 700; letter-spacing: 8px; color: var(--text); font-family: monospace; }
+  .code-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .manage-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .manage-item:last-child { border-bottom: none; }
+  .del-btn { font-size: 11px; padding: 3px 9px; border-radius: 6px; border: 1px solid #fecaca; color: var(--danger); background: none; cursor: pointer; }
+  .add-row { display: flex; gap: 6px; margin-top: 8px; }
+  .add-row .f-input { flex: 1; }
+  .add-row button { padding: 9px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; color: var(--text); white-space: nowrap; }
+  .section-title { font-size: 12px; font-weight: 600; color: var(--text2); margin: 14px 0 6px; }
+  .spinner { display: flex; align-items: center; justify-content: center; flex: 1; color: var(--text3); font-size: 13px; }
+  .sync-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--success-bg); color: var(--success); }
+  .sync-badge.off { background: var(--bg); color: var(--text3); }
+  .cpick-row { display: flex; gap: 8px; margin-top: 6px; }
+  .cpick { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .cpick.sel { border-color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ── ONBOARDING ── -->
+  <div class="screen show" id="scr-ob">
+    <div class="ob-wrap">
+      <div class="ob-logo">우리 가계부 💑</div>
+      <div class="ob-sub">찬식 & 서유를 위한 가계부</div>
+      <div class="ob-info">
+        <div class="ob-info-title">커플 코드란?</div>
+        <div class="ob-info-body">코드를 상대방과 공유하면 <b>공용 가계부·캘린더·자산 합산</b>이 실시간 동기화됩니다.<br>개인 가계부와 개인 자산은 내 기기에만 저장됩니다.</div>
+      </div>
+      <label class="f-label" style="margin-top:0">내 이름</label>
+      <input class="f-input" id="ob-name" placeholder="찬식" value="찬식">
+      <button class="save-btn" onclick="startNew()" style="margin-top:16px">새 커플 코드 만들기</button>
+      <div class="divider-text">또는 상대방 코드로 연결</div>
+      <label class="f-label" style="margin-top:0">커플 코드 입력</label>
+      <input class="f-input" id="ob-code" placeholder="ABC123" maxlength="6" style="text-transform:uppercase;letter-spacing:6px;font-size:18px;text-align:center;font-family:monospace">
+      <button class="btn-outline" onclick="joinCode()">이 코드로 연결하기</button>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="screen" id="scr-main">
+
+    <div class="topbar">
+      <div class="tb-month">
+        <button onclick="changeMonth(-1)">‹</button>
+        <span id="month-disp">2026년 7월</span>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="tb-actions">
+        <button class="pill" id="sync-pill" onclick="showM('modal-code')">🔗 코드</button>
+        <button class="pill" onclick="showM('modal-manage')">⚙️</button>
+      </div>
+    </div>
+
+    <!-- BUDGET SECTION -->
+    <div id="sec-budget" class="section" style="display:flex;flex-direction:column;flex:1;overflow:hidden;background:var(--surface)">
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="switchSub('budget','shared')">공용</div>
+        <div class="sub-tab" onclick="switchSub('budget','private')">개인</div>
+        <div class="sub-tab" onclick="switchSub('budget','stats')">통계</div>
+      </div>
+
+      <div id="subbody-shared" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="sum-bar">
+          <div class="sc"><div class="sc-label">입금</div><div class="sc-val inc" id="sh-inc">+0원</div></div>
+          <div class="sc"><div class="sc-label">지출</div><div class="sc-val exp" id="sh-exp">-0원</div></div>
+          <div class="sc"><div class="sc-label">잔액</div><div class="sc-val" id="sh-bal">0원</div></div>
+        </div>
+        <div class="cal-wrap">
+          <div class="cal-dows"><div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div><div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div></div>
+          <div class="cal-grid" id="cal-shared"></div>
+        </div>
+        <div style="height:1px;background:var(--border);margin:4px 12px;flex-shrink:0"></div>
+        <div class="tx-area" id="tx-shared"></div>
+      </div>
+
+      <div id="subbody-private" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="priv-bar">🔒 개인 가계부는 이 기기에만 저장되며 상대방에게 공유되지 않아요.</div>
+        <div class="sum-bar">
+          <div class="sc"><div class="sc-label">입금</div><div class="sc-val inc" id="pr-inc">+0원</div></div>
+          <div class="sc"><div class="sc-label">지출</div><div class="sc-val exp" id="pr-exp">-0원</div></div>
+          <div class="sc"><div class="sc-label">잔액</div><div class="sc-val" id="pr-bal">0원</div></div>
+        </div>
+        <div class="cal-wrap">
+          <div class="cal-dows"><div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div><div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div></div>
+          <div class="cal-grid" id="cal-private"></div>
+        </div>
+        <div style="height:1px;background:var(--border);margin:4px 12px;flex-shrink:0"></div>
+        <div class="tx-area" id="tx-private"></div>
+      </div>
+
+      <div id="subbody-stats" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="stat-area">
+          <div class="stat-switch">
+            <button class="sw-btn active" id="sbb-shared" onclick="setStatBook('shared')">공용 가계부</button>
+            <button class="sw-btn" id="sbb-private" onclick="setStatBook('private')">개인 가계부</button>
+          </div>
+          <div id="stat-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR SECTION -->
+    <div id="sec-calendar" class="section" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:var(--surface)">
+      <div class="cal-tab-body">
+        <div class="cal-tab-hdr">
+          <span>두 사람이 함께 보는 일정</span>
+          <button class="pill" onclick="showM('modal-evt')">+ 일정 추가</button>
+        </div>
+        <div class="cal-wrap">
+          <div class="cal-dows"><div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div><div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div></div>
+          <div class="cal-grid" id="cal-events"></div>
+        </div>
+        <div style="height:1px;background:var(--border);margin:4px 12px;flex-shrink:0"></div>
+        <div class="evt-area" id="evt-list"></div>
+      </div>
+    </div>
+
+    <!-- ASSETS SECTION -->
+    <div id="sec-assets" class="section" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:var(--surface)">
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="switchSub('assets','total')">합산</div>
+        <div class="sub-tab" onclick="switchSub('assets','me')">찬식</div>
+        <div class="sub-tab" onclick="switchSub('assets','partner')">서유</div>
+      </div>
+      <div id="subbody-assets-total" class="asset-area" style="display:block"></div>
+      <div id="subbody-assets-me" class="asset-area" style="display:none"></div>
+      <div id="subbody-assets-partner" class="asset-area" style="display:none">
+        <div class="priv-bar" style="margin:0 0 10px;border-radius:8px">🔒 서유의 자산은 서유 기기에서 직접 편집할 수 있어요.</div>
+        <div id="asset-partner-inner"></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bot-nav">
+      <button class="bnav active" id="bnav-budget" onclick="switchSection('budget')">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        가계부
+      </button>
+      <button class="bnav" id="bnav-calendar" onclick="switchSection('calendar')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        캘린더
+      </button>
+      <button class="bnav" id="bnav-assets" onclick="switchSection('assets')">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        자산
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- TX MODAL -->
+<div class="modal-bg" id="modal-tx">
+  <div class="modal">
+    <div class="modal-title">가계부 등록 <button class="close-btn" onclick="hideM('modal-tx')">✕</button></div>
+    <div class="type-row">
+      <button class="type-btn ae" id="tb-exp" onclick="setTxType('expense')">지출</button>
+      <button class="type-btn" id="tb-inc" onclick="setTxType('income')">수입</button>
+    </div>
+    <div class="f2">
+      <div>
+        <label class="f-label" style="margin-top:0">가계부</label>
+        <select class="f-input" id="f-book"><option value="shared">🏠 공용</option><option value="private">🔒 개인</option></select>
+      </div>
+      <div>
+        <label class="f-label" style="margin-top:0">날짜</label>
+        <input class="f-input" type="date" id="f-date">
+      </div>
+    </div>
+    <label class="f-label">내용</label>
+    <input class="f-input" type="text" id="f-desc" placeholder="마트, 외식, 월급...">
+    <label class="f-label">금액 (원)</label>
+    <input class="f-input" type="number" id="f-amt" placeholder="0" inputmode="numeric">
+    <label class="f-label">카테고리</label>
+    <div class="chip-row" id="cat-chips"></div>
+    <label class="f-label">지출한 사람</label>
+    <div class="chip-row" id="person-chips"></div>
+    <button class="save-btn" onclick="saveTx()">저장하기</button>
+  </div>
+</div>
+
+<!-- ASSET MODAL -->
+<div class="modal-bg" id="modal-asset">
+  <div class="modal">
+    <div class="modal-title">자산 등록 <button class="close-btn" onclick="hideM('modal-asset')">✕</button></div>
+    <label class="f-label" style="margin-top:0">자산 유형</label>
+    <div class="chip-row" id="asset-type-chips"></div>
+    <label class="f-label">자산명</label>
+    <input class="f-input" type="text" id="a-name" placeholder="삼성전자, 청약저축, 아파트...">
+    <div class="f2">
+      <div><label class="f-label">금액 (원)</label><input class="f-input" type="number" id="a-amt" placeholder="0" inputmode="numeric"></div>
+      <div><label class="f-label">소유자</label><select class="f-input" id="a-owner"><option value="me">찬식</option><option value="partner">서유</option></select></div>
+    </div>
+    <label class="f-label">메모 (선택)</label>
+    <input class="f-input" type="text" id="a-memo" placeholder="수익률, 만기일 등">
+    <button class="save-btn" onclick="saveAsset()">저장하기</button>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-bg" id="modal-evt">
+  <div class="modal">
+    <div class="modal-title">일정 추가 <button class="close-btn" onclick="hideM('modal-evt')">✕</button></div>
+    <label class="f-label" style="margin-top:0">일정 제목</label>
+    <input class="f-input" type="text" id="e-title" placeholder="병원, 여행, 기념일...">
+    <div class="f2">
+      <div><label class="f-label">날짜</label><input class="f-input" type="date" id="e-date"></div>
+      <div><label class="f-label">시간</label><input class="f-input" type="time" id="e-time"></div>
+    </div>
+    <label class="f-label">누가</label>
+    <select class="f-input" id="e-who">
+      <option value="both">👫 둘 다</option>
+      <option value="me">👤 찬식</option>
+      <option value="partner">👤 서유</option>
+    </select>
+    <label class="f-label">색상</label>
+    <div class="cpick-row" id="cpick-row">
+      <div class="cpick sel" data-c="#3b82f6" style="background:#3b82f6" onclick="pickColor(this)"></div>
+      <div class="cpick" data-c="#10b981" style="background:#10b981" onclick="pickColor(this)"></div>
+      <div class="cpick" data-c="#f97316" style="background:#f97316" onclick="pickColor(this)"></div>
+      <div class="cpick" data-c="#8b5cf6" style="background:#8b5cf6" onclick="pickColor(this)"></div>
+      <div class="cpick" data-c="#ec4899" style="background:#ec4899" onclick="pickColor(this)"></div>
+    </div>
+    <button class="save-btn" onclick="saveEvt()">저장하기</button>
+  </div>
+</div>
+
+<!-- CODE MODAL -->
+<div class="modal-bg" id="modal-code">
+  <div class="modal">
+    <div class="modal-title">커플 코드 <button class="close-btn" onclick="hideM('modal-code')">✕</button></div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:6px">이 코드를 상대방과 공유하면 공용 가계부·캘린더·자산 합산이 실시간으로 연결됩니다.</p>
+    <div class="code-box">
+      <div class="code-val" id="code-display">------</div>
+      <div class="code-sub">내 커플 코드</div>
+    </div>
+    <p style="font-size:11px;color:var(--text3);text-align:center">상대방은 이 코드를 앱 첫 화면에서 입력하면 돼요.</p>
+  </div>
+</div>
+
+<!-- MANAGE MODAL -->
+<div class="modal-bg" id="modal-manage">
+  <div class="modal">
+    <div class="modal-title">카테고리 · 지출자 설정 <button class="close-btn" onclick="hideM('modal-manage')">✕</button></div>
+    <div class="section-title">카테고리</div>
+    <div id="mng-cats"></div>
+    <div class="add-row"><input class="f-input" id="new-cat" placeholder="새 카테고리"><button onclick="addCat()">추가</button></div>
+    <div class="section-title">지출자</div>
+    <div id="mng-persons"></div>
+    <div class="add-row"><input class="f-input" id="new-person" placeholder="이름 (예: 남편, 아내)"><button onclick="addPerson()">추가</button></div>
+  </div>
+</div>
+
+<!-- ── FIREBASE + APP LOGIC ── -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, addDoc, deleteDoc,
+  onSnapshot, query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA6XnPWUYuk0KuedtwOVTlYGHdys9UUW00",
+  authDomain: "fire-385ba.firebaseapp.com",
+  projectId: "fire-385ba",
+  storageBucket: "fire-385ba.firebasestorage.app",
+  messagingSenderId: "19654032429",
+  appId: "1:19654032429:web:38682d421f32c19b4c8ca4"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+// ── STATE ──
+const today = new Date();
+let myName = '', coupleCode = '';
+let curY = today.getFullYear(), curM = today.getMonth() + 1, selDay = today.getDate();
+let curSection = 'budget', curSubBudget = 'shared', curSubAssets = 'total';
+let statBook = 'shared', statGroup = 'cat';
+let txType = 'expense', selCat = '', selPerson = '', selAssetType = '예금', selColor = '#3b82f6';
+
+let cats = JSON.parse(localStorage.getItem('v5_cats') || '["식비","교통","쇼핑","의료","문화","주거","저축","기타"]');
+let persons = JSON.parse(localStorage.getItem('v5_persons') || '["찬식","서유"]');
+let sharedTxs = [], privateTxs = [], events = [], assets = [];
+let unsubShared = null, unsubEvents = null, unsubAssets = null;
+
+const CAT_EMOJI = {식비:'🍱',교통:'🚇',쇼핑:'🛍',의료:'💊',문화:'🎬',주거:'🏠',저축:'💰',기타:'📦',수입:'💵'};
+const ASSET_TYPES = ['예금','적금','주식','ETF','펀드','부동산','현금','연금','기타'];
+const ASSET_COLORS = {예금:'#3b82f6',적금:'#10b981',주식:'#f97316',ETF:'#8b5cf6',펀드:'#ec4899',부동산:'#f59e0b',현금:'#6b7280',연금:'#14b8a6',기타:'#6b7280'};
+const DOW = ['일','월','화','수','목','금','토'];
+
+function cEmoji(c) { return CAT_EMOJI[c] || '📦'; }
+function fmt(n) { return Math.abs(Math.round(n)).toLocaleString('ko-KR') + '원'; }
+function fmtB(n) {
+  if (n >= 100000000) return (n / 100000000).toFixed(1) + '억';
+  if (n >= 10000) return Math.round(n / 10000).toLocaleString() + '만';
+  return fmt(n);
+}
+function ym() { return curY + '-' + String(curM).padStart(2, '0'); }
+function dateStr(y, m, d) { return y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0'); }
+function saveLocal() {
+  localStorage.setItem('v5_cats', JSON.stringify(cats));
+  localStorage.setItem('v5_persons', JSON.stringify(persons));
+}
+
+// ── FIRESTORE PATHS ──
+function sharedCol(sub) { return collection(db, 'couples', coupleCode, sub); }
+function privateCol(sub) { return collection(db, 'private', coupleCode + '_' + myName, sub); }
+
+// ── LISTENERS ──
+function attachListeners() {
+  if (unsubShared) unsubShared();
+  if (unsubEvents) unsubEvents();
+  if (unsubAssets) unsubAssets();
+
+  // shared transactions
+  unsubShared = onSnapshot(
+    query(sharedCol('transactions'), orderBy('date', 'desc')),
+    snap => {
+      sharedTxs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderBudget();
+    }
+  );
+  // events
+  unsubEvents = onSnapshot(
+    query(sharedCol('events'), orderBy('date', 'asc')),
+    snap => {
+      events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCalendar();
+    }
+  );
+  // assets (shared collection, owner field distinguishes)
+  unsubAssets = onSnapshot(
+    query(sharedCol('assets'), orderBy('createdAt', 'asc')),
+    snap => {
+      assets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (curSection === 'assets') renderAssets();
+    }
+  );
+
+  // private transactions (localStorage only for this demo; can extend to Firestore)
+  privateTxs = JSON.parse(localStorage.getItem('v5_private_' + myName) || '[]');
+}
+
+// ── ONBOARDING ──
+window.startNew = function() {
+  const name = document.getElementById('ob-name').value.trim() || '찬식';
+  const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+  initUser(name, code);
+};
+window.joinCode = function() {
+  const code = document.getElementById('ob-code').value.toUpperCase().trim();
+  if (code.length < 4) { alert('코드를 입력해주세요'); return; }
+  const name = document.getElementById('ob-name').value.trim() || '찬식';
+  initUser(name, code);
+};
+
+function initUser(name, code) {
+  myName = name; coupleCode = code;
+  localStorage.setItem('v5_name', name);
+  localStorage.setItem('v5_code', code);
+  document.getElementById('scr-ob').classList.remove('show');
+  document.getElementById('scr-main').classList.add('show');
+  document.getElementById('code-display').textContent = code;
+  // Update person names in persons array
+  if (!persons.includes(name)) { persons[0] = name; saveLocal(); }
+  attachListeners();
+  render();
+}
+
+// ── MODALS ──
+window.showM = function(id) {
+  if (id === 'modal-tx') {
+    buildChips();
+    document.getElementById('f-date').value = dateStr(curY, curM, selDay);
+  }
+  if (id === 'modal-code') document.getElementById('code-display').textContent = coupleCode;
+  if (id === 'modal-manage') buildManage();
+  if (id === 'modal-asset') buildAssetTypeChips();
+  if (id === 'modal-evt') document.getElementById('e-date').value = dateStr(curY, curM, selDay);
+  document.getElementById(id).classList.add('open');
+};
+window.hideM = function(id) { document.getElementById(id).classList.remove('open'); };
+
+document.querySelectorAll('.modal-bg').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── TX TYPE ──
+window.setTxType = function(t) {
+  txType = t;
+  document.getElementById('tb-exp').className = 'type-btn' + (t === 'expense' ? ' ae' : '');
+  document.getElementById('tb-inc').className = 'type-btn' + (t === 'income' ? ' ai' : '');
+};
+
+// ── CHIPS ──
+function buildChips() {
+  const cc = document.getElementById('cat-chips'); cc.innerHTML = '';
+  cats.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'chip' + (selCat === c ? ' sel' : '');
+    el.textContent = cEmoji(c) + ' ' + c;
+    el.onclick = () => { selCat = c; buildChips(); };
+    cc.appendChild(el);
+  });
+  const pc = document.getElementById('person-chips'); pc.innerHTML = '';
+  [{ v: '', l: '미지정' }, ...persons.map(p => ({ v: p, l: '👤 ' + p }))].forEach(({ v, l }) => {
+    const el = document.createElement('div');
+    el.className = 'chip' + (selPerson === v ? ' sel' : '');
+    el.textContent = l;
+    el.onclick = () => { selPerson = v; buildChips(); };
+    pc.appendChild(el);
+  });
+}
+function buildAssetTypeChips() {
+  const c = document.getElementById('asset-type-chips'); c.innerHTML = '';
+  ASSET_TYPES.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'chip' + (selAssetType === t ? ' sel' : '');
+    el.textContent = t;
+    el.onclick = () => { selAssetType = t; buildAssetTypeChips(); };
+    c.appendChild(el);
+  });
+}
+window.pickColor = function(el) {
+  selColor = el.dataset.c;
+  document.querySelectorAll('.cpick').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+};
+
+// ── SAVE TX ──
+window.saveTx = async function() {
+  const amt = parseFloat(document.getElementById('f-amt').value);
+  const desc = document.getElementById('f-desc').value.trim();
+  if (!amt || amt <= 0) { alert('금액을 입력해주세요'); return; }
+  if (!desc) { alert('내용을 입력해주세요'); return; }
+  if (!selCat && cats.length) { alert('카테고리를 선택해주세요'); return; }
+  const tx = {
+    type: txType, amount: amt, desc, cat: selCat, person: selPerson,
+    date: document.getElementById('f-date').value,
+    who: myName, createdAt: serverTimestamp()
+  };
+  const book = document.getElementById('f-book').value;
+  if (book === 'shared') {
+    await addDoc(sharedCol('transactions'), tx);
+  } else {
+    tx.createdAt = Date.now();
+    privateTxs.push({ id: Date.now().toString(), ...tx });
+    localStorage.setItem('v5_private_' + myName, JSON.stringify(privateTxs));
+    renderBudget();
+  }
+  document.getElementById('f-amt').value = '';
+  document.getElementById('f-desc').value = '';
+  selCat = ''; selPerson = '';
+  hideM('modal-tx');
+};
+
+// ── SAVE ASSET ──
+window.saveAsset = async function() {
+  const amt = parseFloat(document.getElementById('a-amt').value);
+  const name = document.getElementById('a-name').value.trim();
+  if (!amt || !name) { alert('자산명과 금액을 입력해주세요'); return; }
+  await addDoc(sharedCol('assets'), {
+    type: selAssetType, name, amount: amt,
+    owner: document.getElementById('a-owner').value,
+    memo: document.getElementById('a-memo').value,
+    createdAt: serverTimestamp()
+  });
+  document.getElementById('a-amt').value = '';
+  document.getElementById('a-name').value = '';
+  document.getElementById('a-memo').value = '';
+  hideM('modal-asset');
+};
+
+// ── SAVE EVENT ──
+window.saveEvt = async function() {
+  const title = document.getElementById('e-title').value.trim();
+  const date = document.getElementById('e-date').value;
+  if (!title || !date) { alert('제목과 날짜를 입력해주세요'); return; }
+  await addDoc(sharedCol('events'), {
+    title, date, time: document.getElementById('e-time').value,
+    who: document.getElementById('e-who').value, color: selColor,
+    createdAt: serverTimestamp()
+  });
+  document.getElementById('e-title').value = '';
+  hideM('modal-evt');
+};
+
+// ── MANAGE ──
+window.addCat = function() {
+  const v = document.getElementById('new-cat').value.trim();
+  if (!v || cats.includes(v)) return;
+  cats.push(v); saveLocal(); buildManage();
+  document.getElementById('new-cat').value = '';
+};
+window.addPerson = function() {
+  const v = document.getElementById('new-person').value.trim();
+  if (!v || persons.includes(v)) return;
+  persons.push(v); saveLocal(); buildManage();
+  document.getElementById('new-person').value = '';
+};
+window.delCat = function(i) { cats.splice(i, 1); saveLocal(); buildManage(); };
+window.delPerson = function(i) { persons.splice(i, 1); saveLocal(); buildManage(); };
+
+function buildManage() {
+  ['cats', 'persons'].forEach(type => {
+    const list = type === 'cats' ? cats : persons;
+    const el = document.getElementById('mng-' + type); el.innerHTML = '';
+    list.forEach((item, i) => {
+      const row = document.createElement('div'); row.className = 'manage-item';
+      row.innerHTML = `<span style="font-size:13px;color:var(--text)">${type === 'cats' ? cEmoji(item) + ' ' : '👤 '}${item}</span><button class="del-btn" onclick="${type === 'cats' ? 'delCat' : 'delPerson'}(${i})">삭제</button>`;
+      el.appendChild(row);
+    });
+  });
+}
+
+// ── NAV ──
+window.switchSection = function(s) {
+  curSection = s;
+  ['budget', 'calendar', 'assets'].forEach(x => {
+    document.getElementById('sec-' + x).style.display = x === s ? 'flex' : 'none';
+    document.getElementById('bnav-' + x).classList.toggle('active', x === s);
+  });
+  if (s === 'assets') renderAssets();
+};
+window.switchSub = function(section, sub) {
+  if (section === 'budget') {
+    curSubBudget = sub;
+    document.querySelectorAll('#sec-budget .sub-tab').forEach((el, i) =>
+      el.classList.toggle('active', ['shared', 'private', 'stats'][i] === sub));
+    ['shared', 'private', 'stats'].forEach(x => {
+      const el = document.getElementById('subbody-' + x);
+      if (el) { el.style.display = x === sub ? 'flex' : 'none'; if (x === sub) el.style.flexDirection = 'column'; }
+    });
+    if (sub === 'stats') renderStats();
+  } else {
+    curSubAssets = sub;
+    document.querySelectorAll('#sec-assets .sub-tab').forEach((el, i) =>
+      el.classList.toggle('active', ['total', 'me', 'partner'][i] === sub));
+    ['total', 'me', 'partner'].forEach(x => {
+      const el = document.getElementById('subbody-assets-' + x);
+      if (el) el.style.display = x === sub ? 'block' : 'none';
+    });
+    renderAssets();
+  }
+};
+window.setStatBook = function(b) {
+  statBook = b;
+  document.getElementById('sbb-shared').classList.toggle('active', b === 'shared');
+  document.getElementById('sbb-private').classList.toggle('active', b === 'private');
+  renderStats();
+};
+window.changeMonth = function(d) {
+  curM += d;
+  if (curM > 12) { curM = 1; curY++; }
+  if (curM < 1) { curM = 12; curY--; }
+  render();
+};
+
+// ── CALENDAR BUILD ──
+function buildCal(gridId, byDay, type) {
+  const first = new Date(curY, curM - 1, 1).getDay();
+  const days = new Date(curY, curM, 0).getDate();
+  const g = document.getElementById(gridId); if (!g) return; g.innerHTML = '';
+  for (let i = 0; i < first; i++) {
+    const c = document.createElement('div'); c.className = 'cc other';
+    c.innerHTML = '<div class="dn"></div>'; g.appendChild(c);
+  }
+  for (let d = 1; d <= days; d++) {
+    const c = document.createElement('div');
+    const dow = (first + d - 1) % 7;
+    let cls = 'cc';
+    if (dow === 0) cls += ' sun'; if (dow === 6) cls += ' sat';
+    if (d === selDay) cls += ' sel';
+    if (curY === today.getFullYear() && curM - 1 === today.getMonth() && d === today.getDate()) cls += ' tod';
+    c.className = cls;
+    const dd = d; c.onclick = () => { selDay = dd; render(); };
+    const dn = document.createElement('div'); dn.className = 'dn'; dn.textContent = d; c.appendChild(dn);
+    if (type === 'tx' && byDay[d] !== undefined) {
+      const a = document.createElement('div');
+      a.className = 'da' + (byDay[d] >= 0 ? ' pos' : '');
+      a.textContent = (byDay[d] >= 0 ? '+' : '') + Math.abs(Math.round(byDay[d])).toLocaleString();
+      c.appendChild(a);
+    }
+    if (type === 'evt' && byDay[d]) {
+      const row = document.createElement('div'); row.className = 'evt-dot-row';
+      byDay[d].slice(0, 3).forEach(ev => {
+        const dot = document.createElement('div'); dot.className = 'evt-dot';
+        dot.style.background = ev.color; row.appendChild(dot);
+      });
+      c.appendChild(row);
+    }
+    g.appendChild(c);
+  }
+}
+
+// ── RENDER TX AREA ──
+function renderTxArea(areaId, calId, txList, book) {
+  const ymStr = ym();
+  const all = txList.filter(t => t.date && t.date.startsWith(ymStr));
+  const inc = all.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const exp = all.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const bal = inc - exp;
+  if (book === 'shared') {
+    document.getElementById('sh-inc').textContent = '+' + fmt(inc);
+    document.getElementById('sh-exp').textContent = '-' + fmt(exp);
+    document.getElementById('sh-bal').textContent = (bal < 0 ? '-' : '') + fmt(bal);
+  } else {
+    document.getElementById('pr-inc').textContent = '+' + fmt(inc);
+    document.getElementById('pr-exp').textContent = '-' + fmt(exp);
+    document.getElementById('pr-bal').textContent = (bal < 0 ? '-' : '') + fmt(bal);
+  }
+  const byDay = {};
+  all.forEach(t => { const d = parseInt(t.date.split('-')[2]); byDay[d] = (byDay[d] || 0) + (t.type === 'income' ? t.amount : -t.amount); });
+  buildCal(calId, byDay, 'tx');
+
+  const sec = document.getElementById(areaId); if (!sec) return; sec.innerHTML = '';
+  const sel = all.filter(t => parseInt(t.date.split('-')[2]) === selDay).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const dLabel = curM + '월 ' + selDay + '일(' + DOW[(new Date(curY, curM - 1, 1).getDay() + selDay - 1) % 7] + ')';
+
+  if (sel.length === 0) {
+    const em = document.createElement('div'); em.className = 'tx-empty';
+    em.innerHTML = '📭<br>' + dLabel + ' 내역이 없어요';
+    sec.appendChild(em);
+  } else {
+    const pill = document.createElement('span'); pill.className = 'date-pill'; pill.textContent = dLabel; sec.appendChild(pill);
+    sel.forEach(tx => {
+      const div = document.createElement('div'); div.className = 'tx-item';
+      div.innerHTML = `<div class="tx-ico">${cEmoji(tx.cat)}</div><div class="tx-body"><div class="tx-name">${tx.desc}</div><div class="tx-tags"><span class="tag">${tx.cat || '기타'}</span>${tx.person ? `<span class="tag person">👤 ${tx.person}</span>` : ''}</div></div><div class="tx-amt ${tx.type === 'income' ? 'inc' : ''}">${tx.type === 'income' ? '+' : '-'}${fmt(tx.amount)}</div>`;
+      sec.appendChild(div);
+    });
+  }
+  const rb = document.createElement('button'); rb.className = 'reg-btn';
+  rb.innerHTML = '＋ ' + dLabel + ' 가계부 등록';
+  rb.onclick = () => { document.getElementById('f-book').value = book; showM('modal-tx'); };
+  sec.appendChild(rb);
+}
+
+// ── STATS ──
+function renderStats() {
+  const txList = statBook === 'shared' ? sharedTxs : privateTxs;
+  const ymStr = ym();
+  const exp = txList.filter(t => t.date && t.date.startsWith(ymStr) && t.type === 'expense');
+  const inc = txList.filter(t => t.date && t.date.startsWith(ymStr) && t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExp = exp.reduce((s, t) => s + t.amount, 0);
+  const sec = document.getElementById('stat-content'); if (!sec) return; sec.innerHTML = '';
+
+  sec.innerHTML = `<div class="metric-row"><div class="metric"><div class="metric-label">${curM}월 수입</div><div class="metric-val" style="color:var(--success)">+${fmt(inc)}</div></div><div class="metric"><div class="metric-label">${curM}월 지출</div><div class="metric-val" style="color:var(--danger)">-${fmt(totalExp)}</div></div></div>`;
+  const gRow = document.createElement('div'); gRow.className = 'sg-row';
+  [['cat', '카테고리별'], ['person', '지출자별'], ['day', '일별']].forEach(([k, l]) => {
+    const b = document.createElement('button'); b.className = 'sg-btn' + (statGroup === k ? ' active' : '');
+    b.textContent = l; b.onclick = () => { statGroup = k; renderStats(); }; gRow.appendChild(b);
+  });
+  sec.appendChild(gRow);
+  const grouped = {};
+  if (statGroup === 'cat') exp.forEach(t => { const k = t.cat || '기타'; grouped[k] = (grouped[k] || 0) + t.amount; });
+  else if (statGroup === 'person') exp.forEach(t => { const k = t.person || '미지정'; grouped[k] = (grouped[k] || 0) + t.amount; });
+  else exp.forEach(t => { const d = t.date.split('-')[2] + '일'; grouped[d] = (grouped[d] || 0) + t.amount; });
+  const sorted = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+  const maxV = sorted.length ? sorted[0][1] : 1;
+  if (!sorted.length) { sec.insertAdjacentHTML('beforeend', '<div style="text-align:center;padding:1rem;color:var(--text3);font-size:12px">지출 내역이 없어요</div>'); return; }
+  sorted.forEach(([k, v]) => {
+    const row = document.createElement('div'); row.className = 'bar-row';
+    row.innerHTML = `<div class="bar-body"><div class="bar-label">${statGroup === 'cat' ? cEmoji(k) + ' ' : statGroup === 'person' ? '👤 ' : '📅 '}${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v / maxV * 100)}%"></div></div></div><div class="bar-val">-${fmt(v)}</div>`;
+    sec.appendChild(row);
+  });
+}
+
+// ── CALENDAR RENDER ──
+function renderCalendar() {
+  const ymStr = ym();
+  const evAll = events.filter(t => t.date && t.date.startsWith(ymStr));
+  const evByDay = {};
+  evAll.forEach(t => { const d = parseInt(t.date.split('-')[2]); if (!evByDay[d]) evByDay[d] = []; evByDay[d].push(t); });
+  buildCal('cal-events', evByDay, 'evt');
+  const evSec = document.getElementById('evt-list'); if (!evSec) return; evSec.innerHTML = '';
+  const sel = evAll.filter(t => parseInt(t.date.split('-')[2]) === selDay).sort((a, b) => a.time > b.time ? 1 : -1);
+  if (!sel.length) {
+    evSec.innerHTML = `<div class="tx-empty">📅<br>${curM}월 ${selDay}일 일정이 없어요</div>`;
+  } else {
+    const pill = document.createElement('span'); pill.className = 'date-pill'; pill.textContent = curM + '월 ' + selDay + '일'; evSec.appendChild(pill);
+    sel.forEach(ev => {
+      const div = document.createElement('div'); div.className = 'evt-item';
+      const whoText = ev.who === 'both' ? '👫 둘 다' : ev.who === 'me' ? '👤 찬식' : '👤 서유';
+      div.innerHTML = `<div class="evt-bullet" style="background:${ev.color}"></div><div class="evt-body"><div class="evt-title">${ev.title}</div><div class="evt-meta">${ev.time || '하루 종일'}</div><span class="evt-who-tag" style="background:${ev.color}22;color:${ev.color}">${whoText}</span></div>`;
+      evSec.appendChild(div);
+    });
+  }
+  const rb = document.createElement('button'); rb.className = 'reg-btn';
+  rb.innerHTML = '＋ 일정 추가'; rb.onclick = () => showM('modal-evt');
+  evSec.appendChild(rb);
+}
+
+// ── ASSETS RENDER ──
+function renderAssets() {
+  const meA = assets.filter(a => a.owner === 'me');
+  const partnerA = assets.filter(a => a.owner === 'partner');
+  const meTotal = meA.reduce((s, a) => s + a.amount, 0);
+  const partnerTotal = partnerA.reduce((s, a) => s + a.amount, 0);
+  const grand = meTotal + partnerTotal;
+
+  function assetCard(a) {
+    const color = ASSET_COLORS[a.type] || '#6b7280';
+    return `<div class="asset-card"><div class="asset-dot" style="background:${color}"></div><div class="asset-body"><span class="asset-type-tag" style="background:${color}22;color:${color}">${a.type}</span><div class="asset-name">${a.name}</div>${a.memo ? `<div class="asset-memo">${a.memo}</div>` : ''}</div><div class="asset-amt">${fmtB(a.amount)}</div></div>`;
+  }
+  function addAssetBtn(owner) {
+    const rb = document.createElement('button'); rb.className = 'reg-btn'; rb.style.marginTop = '8px';
+    rb.innerHTML = '＋ 자산 등록';
+    rb.onclick = () => { document.getElementById('a-owner').value = owner; showM('modal-asset'); };
+    return rb;
+  }
+
+  // TOTAL
+  const tc = document.getElementById('subbody-assets-total'); if (!tc) return; tc.innerHTML = '';
+  tc.innerHTML = `<div class="total-card"><div class="total-label">총 자산</div><div class="total-val">${fmtB(grand)}</div></div><div class="person-split"><div class="person-card me"><div class="person-card-name">찬식</div><div class="person-card-val">${fmtB(meTotal)}</div></div><div class="person-card partner"><div class="person-card-name">서유</div><div class="person-card-val">${fmtB(partnerTotal)}</div></div></div>`;
+  if (assets.length === 0) tc.insertAdjacentHTML('beforeend', '<div class="tx-empty">💰<br>자산을 등록해보세요</div>');
+  else {
+    const byType = {}; assets.forEach(a => { byType[a.type] = (byType[a.type] || 0) + a.amount; });
+    Object.entries(byType).sort((a, b) => b[1] - a[1]).forEach(([t, v]) => {
+      const color = ASSET_COLORS[t] || '#6b7280';
+      const row = document.createElement('div'); row.className = 'bar-row';
+      row.innerHTML = `<div class="bar-body"><div class="bar-label" style="display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color}"></span>${t}</div><div class="bar-track"><div class="bar-fill" style="width:${grand ? Math.round(v / grand * 100) : 0}%;background:${color}"></div></div></div><div class="bar-val" style="color:var(--text)">${fmtB(v)}</div>`;
+      tc.appendChild(row);
+    });
+  }
+  tc.appendChild(addAssetBtn('me'));
+
+  // ME
+  const mc = document.getElementById('subbody-assets-me'); if (!mc) return; mc.innerHTML = '';
+  mc.innerHTML = `<div class="total-card" style="background:var(--accent-bg)"><div class="total-label" style="color:var(--accent-text)">찬식 총 자산</div><div class="total-val" style="color:var(--accent-text)">${fmtB(meTotal)}</div></div>`;
+  if (!meA.length) mc.insertAdjacentHTML('beforeend', '<div class="tx-empty">💰<br>등록된 자산이 없어요</div>');
+  else meA.forEach(a => mc.insertAdjacentHTML('beforeend', assetCard(a)));
+  mc.appendChild(addAssetBtn('me'));
+
+  // PARTNER
+  const pi = document.getElementById('asset-partner-inner'); if (!pi) return; pi.innerHTML = '';
+  pi.innerHTML = `<div class="total-card" style="background:var(--pro-bg)"><div class="total-label" style="color:var(--pro-text)">서유 총 자산</div><div class="total-val" style="color:var(--pro-text)">${fmtB(partnerTotal)}</div></div>`;
+  if (!partnerA.length) pi.insertAdjacentHTML('beforeend', '<div class="tx-empty">💰<br>등록된 자산이 없어요</div>');
+  else partnerA.forEach(a => pi.insertAdjacentHTML('beforeend', assetCard(a)));
+  pi.appendChild(addAssetBtn('partner'));
+}
+
+// ── MAIN RENDER ──
+function renderBudget() {
+  renderTxArea('tx-shared', 'cal-shared', sharedTxs, 'shared');
+  renderTxArea('tx-private', 'cal-private', privateTxs, 'private');
+  if (curSubBudget === 'stats') renderStats();
+}
+
+function render() {
+  document.getElementById('month-disp').textContent = curY + '년 ' + curM + '월';
+  renderBudget();
+  renderCalendar();
+  if (curSection === 'assets') renderAssets();
+}
+
+// ── INIT ──
+const savedCode = localStorage.getItem('v5_code');
+const savedName = localStorage.getItem('v5_name');
+if (savedCode && savedName) {
+  document.getElementById('ob-name').value = savedName;
+  initUser(savedName, savedCode);
+}
+
+document.getElementById('f-date').value = dateStr(today.getFullYear(), today.getMonth() + 1, today.getDate());
+document.getElementById('e-date').value = dateStr(today.getFullYear(), today.getMonth() + 1, today.getDate());
+</script>
+</body>
+</html>
