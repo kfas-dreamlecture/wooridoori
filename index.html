@@ -95,8 +95,10 @@
   /* ── TX LIST ── */
   .tx-area { flex: 1; overflow-y: auto; padding: 0 12px 90px; -webkit-overflow-scrolling: touch; }
   .date-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; background: var(--accent-bg); color: var(--accent-text); border-radius: 20px; margin: 10px 0 6px; }
-  .tx-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .tx-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
   .tx-item:last-of-type { border-bottom: none; }
+  .tx-item:active { background: var(--bg); }
+  .del-tx-btn { width: 100%; padding: 11px; background: none; color: var(--danger); border: 1px solid #fecaca; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; }
   .tx-ico { width: 36px; height: 36px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
   .tx-body { flex: 1; min-width: 0; }
   .tx-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -346,7 +348,9 @@
 <!-- TX MODAL -->
 <div class="modal-bg" id="modal-tx">
   <div class="modal">
-    <div class="modal-title">가계부 등록 <button class="close-btn" onclick="hideM('modal-tx')">✕</button></div>
+    <div class="modal-title"><span id="tx-modal-title">가계부 등록</span> <button class="close-btn" onclick="hideM('modal-tx')">✕</button></div>
+    <input type="hidden" id="f-editid">
+    <input type="hidden" id="f-editbook">
     <div class="type-row">
       <button class="type-btn ae" id="tb-exp" onclick="setTxType('expense')">지출</button>
       <button class="type-btn" id="tb-inc" onclick="setTxType('income')">수입</button>
@@ -369,7 +373,8 @@
     <div class="chip-row" id="cat-chips"></div>
     <label class="f-label">지출한 사람</label>
     <div class="chip-row" id="person-chips"></div>
-    <button class="save-btn" onclick="saveTx()">저장하기</button>
+    <button class="save-btn" id="tx-save-btn" onclick="saveTx()">저장하기</button>
+    <button class="del-tx-btn" id="tx-del-btn" onclick="deleteTx()" style="display:none">삭제하기</button>
   </div>
 </div>
 
@@ -613,8 +618,15 @@ window.resetCouple = function() {
 // ── MODALS ──
 window.showM = function(id) {
   if (id === 'modal-tx') {
-    buildChips();
-    document.getElementById('f-date').value = dateStr(curY, curM, selDay);
+    // 새로 여는 경우(수정 아님) 기본 상태로 리셋
+    if (!document.getElementById('f-editid').value) {
+      document.getElementById('tx-modal-title').textContent = '가계부 등록';
+      document.getElementById('tx-save-btn').textContent = '저장하기';
+      document.getElementById('tx-del-btn').style.display = 'none';
+      document.getElementById('f-book').disabled = false;
+      buildChips();
+      document.getElementById('f-date').value = dateStr(curY, curM, selDay);
+    }
   }
   if (id === 'modal-code') document.getElementById('code-display').textContent = coupleCode;
   if (id === 'modal-manage') buildManage();
@@ -622,7 +634,15 @@ window.showM = function(id) {
   if (id === 'modal-evt') document.getElementById('e-date').value = dateStr(curY, curM, selDay);
   document.getElementById(id).classList.add('open');
 };
-window.hideM = function(id) { document.getElementById(id).classList.remove('open'); };
+window.hideM = function(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modal-tx') {
+    // 모달 닫을 때 수정 상태 초기화
+    document.getElementById('f-editid').value = '';
+    document.getElementById('f-editbook').value = '';
+    document.getElementById('f-book').disabled = false;
+  }
+};
 
 document.querySelectorAll('.modal-bg').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
@@ -670,31 +690,107 @@ window.pickColor = function(el) {
   el.classList.add('sel');
 };
 
-// ── SAVE TX ──
+// ── SAVE TX (신규 등록 또는 수정) ──
 window.saveTx = async function() {
   const amt = parseFloat(document.getElementById('f-amt').value);
   const desc = document.getElementById('f-desc').value.trim();
   if (!amt || amt <= 0) { alert('금액을 입력해주세요'); return; }
   if (!desc) { alert('내용을 입력해주세요'); return; }
   if (!selCat && cats.length) { alert('카테고리를 선택해주세요'); return; }
-  const tx = {
+
+  const editId = document.getElementById('f-editid').value;
+  const editBook = document.getElementById('f-editbook').value;
+  const book = document.getElementById('f-book').value;
+
+  const txData = {
     type: txType, amount: amt, desc, cat: selCat, person: selPerson,
     date: document.getElementById('f-date').value,
-    who: myName, createdAt: serverTimestamp()
+    who: myName
   };
-  const book = document.getElementById('f-book').value;
-  if (book === 'shared') {
-    await addDoc(sharedCol('transactions'), tx);
+
+  if (editId) {
+    // ── 수정 모드 ──
+    if (editBook === 'shared') {
+      const { doc: docRef, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      await updateDoc(docRef(db, 'couples', coupleCode, 'transactions', editId), txData);
+    } else {
+      const idx = privateTxs.findIndex(t => t.id === editId);
+      if (idx > -1) {
+        privateTxs[idx] = { ...privateTxs[idx], ...txData };
+        localStorage.setItem('v5_private_' + myName, JSON.stringify(privateTxs));
+      }
+      renderBudget();
+    }
+    showToast('수정했어요');
   } else {
-    tx.createdAt = Date.now();
-    privateTxs.push({ id: Date.now().toString(), ...tx });
+    // ── 신규 등록 ──
+    txData.createdAt = book === 'shared' ? serverTimestamp() : Date.now();
+    if (book === 'shared') {
+      await addDoc(sharedCol('transactions'), txData);
+    } else {
+      privateTxs.push({ id: Date.now().toString(), ...txData });
+      localStorage.setItem('v5_private_' + myName, JSON.stringify(privateTxs));
+      renderBudget();
+    }
+  }
+
+  document.getElementById('f-amt').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-editid').value = '';
+  document.getElementById('f-editbook').value = '';
+  document.getElementById('f-book').disabled = false;
+  selCat = ''; selPerson = '';
+  hideM('modal-tx');
+};
+
+// ── 내역 클릭 시 수정 모달 열기 ──
+window.editTx = function(id, book) {
+  const txList = book === 'shared' ? sharedTxs : privateTxs;
+  const tx = txList.find(t => t.id === id);
+  if (!tx) return;
+
+  document.getElementById('f-editid').value = id;
+  document.getElementById('f-editbook').value = book;
+  document.getElementById('tx-modal-title').textContent = '내역 수정';
+  document.getElementById('tx-save-btn').textContent = '수정하기';
+  document.getElementById('tx-del-btn').style.display = 'block';
+
+  txType = tx.type;
+  setTxType(tx.type);
+  document.getElementById('f-book').value = book;
+  document.getElementById('f-book').disabled = true; // 수정 중엔 가계부 종류 변경 불가
+  document.getElementById('f-date').value = tx.date;
+  document.getElementById('f-desc').value = tx.desc;
+  document.getElementById('f-amt').value = tx.amount;
+  selCat = tx.cat || '';
+  selPerson = tx.person || '';
+  buildChips();
+
+  document.getElementById('modal-tx').classList.add('open');
+};
+
+// ── 내역 삭제 ──
+window.deleteTx = async function() {
+  const editId = document.getElementById('f-editid').value;
+  const editBook = document.getElementById('f-editbook').value;
+  if (!editId) return;
+  if (!confirm('이 내역을 삭제할까요?')) return;
+
+  if (editBook === 'shared') {
+    const { doc: docRef, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await delDoc(docRef(db, 'couples', coupleCode, 'transactions', editId));
+  } else {
+    privateTxs = privateTxs.filter(t => t.id !== editId);
     localStorage.setItem('v5_private_' + myName, JSON.stringify(privateTxs));
     renderBudget();
   }
-  document.getElementById('f-amt').value = '';
-  document.getElementById('f-desc').value = '';
+
+  document.getElementById('f-editid').value = '';
+  document.getElementById('f-editbook').value = '';
+  document.getElementById('f-book').disabled = false;
   selCat = ''; selPerson = '';
   hideM('modal-tx');
+  showToast('삭제했어요');
 };
 
 // ── SAVE ASSET ──
@@ -868,6 +964,7 @@ function renderTxArea(areaId, calId, txList, book) {
     const pill = document.createElement('span'); pill.className = 'date-pill'; pill.textContent = dLabel; sec.appendChild(pill);
     sel.forEach(tx => {
       const div = document.createElement('div'); div.className = 'tx-item';
+      div.onclick = () => editTx(tx.id, book);
       div.innerHTML = `<div class="tx-ico">${cEmoji(tx.cat)}</div><div class="tx-body"><div class="tx-name">${tx.desc}</div><div class="tx-tags"><span class="tag">${tx.cat || '기타'}</span>${tx.person ? `<span class="tag person">👤 ${tx.person}</span>` : ''}</div></div><div class="tx-amt ${tx.type === 'income' ? 'inc' : ''}">${tx.type === 'income' ? '+' : '-'}${fmt(tx.amount)}</div>`;
       sec.appendChild(div);
     });
