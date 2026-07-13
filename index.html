@@ -95,7 +95,8 @@
   /* ── TX LIST ── */
   .tx-area { flex: 1; overflow-y: auto; padding: 0 12px 90px; -webkit-overflow-scrolling: touch; }
   .date-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; background: var(--accent-bg); color: var(--accent-text); border-radius: 20px; margin: 10px 0 6px; }
-  .tx-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .tx-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+  .tx-item * { pointer-events: none; }
   .tx-item:last-of-type { border-bottom: none; }
   .tx-item:active { background: var(--bg); }
   .del-tx-btn { width: 100%; padding: 11px; background: none; color: var(--danger); border: 1px solid #fecaca; border-radius: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; }
@@ -964,7 +965,8 @@ function renderTxArea(areaId, calId, txList, book) {
     const pill = document.createElement('span'); pill.className = 'date-pill'; pill.textContent = dLabel; sec.appendChild(pill);
     sel.forEach(tx => {
       const div = document.createElement('div'); div.className = 'tx-item';
-      div.onclick = () => editTx(tx.id, book);
+      div.setAttribute('role', 'button');
+      div.addEventListener('click', function() { editTx(tx.id, book); });
       div.innerHTML = `<div class="tx-ico">${cEmoji(tx.cat)}</div><div class="tx-body"><div class="tx-name">${tx.desc}</div><div class="tx-tags"><span class="tag">${tx.cat || '기타'}</span>${tx.person ? `<span class="tag person">👤 ${tx.person}</span>` : ''}</div></div><div class="tx-amt ${tx.type === 'income' ? 'inc' : ''}">${tx.type === 'income' ? '+' : '-'}${fmt(tx.amount)}</div>`;
       sec.appendChild(div);
     });
