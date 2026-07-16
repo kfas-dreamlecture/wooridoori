@@ -752,32 +752,55 @@ window.toggleGcal = function() {
   }
 };
 
+const GCAL_PALETTE = ['#4285f4', '#0b8043', '#e67c73', '#f6bf26', '#8e24aa', '#616161', '#3f51b5', '#009688'];
+
+async function gcalAuthedFetch(url) {
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + gcalAccessToken } });
+  if (res.status === 401) {
+    gcalAccessToken = null; gcalTokenExpiry = 0;
+    localStorage.removeItem('v5_gcal_token');
+    localStorage.removeItem('v5_gcal_expiry');
+    updateGcalStatus();
+    return null;
+  }
+  return res.json();
+}
+
 async function fetchGcalEvents() {
   if (!gcalAccessToken) return;
   try {
+    // 1. 내 계정에 있는 모든 캘린더 목록을 가져온다 (기본 캘린더, 공휴일, 공유받은 캘린더 등)
+    const listData = await gcalAuthedFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=250');
+    if (!listData) return;
+    const calendars = (listData.items || []).filter(c => c.selected !== false);
+
     const timeMin = new Date(curY, curM - 2, 1).toISOString();
     const timeMax = new Date(curY, curM + 1, 0).toISOString();
-    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=250`;
-    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + gcalAccessToken } });
-    if (res.status === 401) {
-      // token expired
-      gcalAccessToken = null; gcalTokenExpiry = 0;
-      localStorage.removeItem('v5_gcal_token');
-      localStorage.removeItem('v5_gcal_expiry');
-      updateGcalStatus();
-      return;
-    }
-    const data = await res.json();
-    gcalEvents = (data.items || []).map(ev => {
-      const startRaw = ev.start && (ev.start.date || ev.start.dateTime);
-      const date = startRaw ? startRaw.slice(0, 10) : null;
-      let time = '';
-      if (ev.start && ev.start.dateTime) {
-        const dt = new Date(ev.start.dateTime);
-        time = String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+
+    // 2. 각 캘린더의 일정을 병렬로 가져와서 합친다
+    const results = await Promise.all(calendars.map(async (cal, i) => {
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=250`;
+      try {
+        const data = await gcalAuthedFetch(url);
+        if (!data) return [];
+        const color = cal.backgroundColor || GCAL_PALETTE[i % GCAL_PALETTE.length];
+        return (data.items || []).map(ev => {
+          const startRaw = ev.start && (ev.start.date || ev.start.dateTime);
+          const date = startRaw ? startRaw.slice(0, 10) : null;
+          let time = '';
+          if (ev.start && ev.start.dateTime) {
+            const dt = new Date(ev.start.dateTime);
+            time = String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+          }
+          return { id: 'gcal_' + cal.id + '_' + ev.id, title: ev.summary || '(제목 없음)', date, time, source: 'google', calName: cal.summary, color };
+        }).filter(e => e.date);
+      } catch (e) {
+        console.error('gcal cal fetch error', cal.id, e);
+        return [];
       }
-      return { id: 'gcal_' + ev.id, title: ev.summary || '(제목 없음)', date, time, source: 'google', color: '#4285f4' };
-    }).filter(e => e.date);
+    }));
+
+    gcalEvents = results.flat();
     renderCalendar();
   } catch (e) {
     console.error('gcal fetch error', e);
@@ -1300,7 +1323,7 @@ function renderCalendar() {
       const whoText = (isGoogle || isIcs) ? '' : (ev.who === 'both' ? '👫 둘 다' : ev.who === 'me' ? '👤 찬식' : '👤 서유');
       const color = ev.color || '#6366f1';
       let srcTag = '';
-      if (isGoogle) srcTag = '<span class="evt-src-tag">📆 구글 캘린더</span>';
+      if (isGoogle) srcTag = `<span class="evt-src-tag" style="background:${color}22;color:${color}">📆 ${ev.calName || '구글 캘린더'}</span>`;
       if (isIcs) {
         const calName = (subscribedCals.find(c => c.id === ev.calId) || {}).name || '구독 캘린더';
         srcTag = `<span class="evt-src-tag" style="background:${color}22;color:${color}">🔗 ${calName}</span>`;
