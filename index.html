@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>우리 가계부</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
 <style>
   :root {
     --bg: #f5f5f5;
@@ -147,6 +149,15 @@
   .evt-title { font-size: 13px; color: var(--text); }
   .evt-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
   .evt-who-tag { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 8px; margin-top: 3px; }
+  .evt-src-tag { display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 8px; margin-top: 3px; margin-left: 4px; background: #eef2ff; color: #4338ca; }
+
+  /* ── GCAL CONNECT BAR ── */
+  .gcal-bar { margin: 8px 12px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+  .gcal-bar-left { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+  .gcal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+  .gcal-dot.on { background: var(--success); }
+  .gcal-btn { font-size: 11px; padding: 5px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; }
+  .gcal-btn.danger { color: var(--danger); border-color: #fecaca; }
 
   /* ── ASSETS ── */
   .asset-area { flex: 1; overflow-y: auto; padding: 10px 12px 110px; }
@@ -301,6 +312,13 @@
         <div class="cal-tab-hdr">
           <span>두 사람이 함께 보는 일정</span>
           <button class="pill" onclick="showM('modal-evt')">+ 일정 추가</button>
+        </div>
+        <div class="gcal-bar">
+          <div class="gcal-bar-left">
+            <span class="gcal-dot" id="gcal-dot"></span>
+            <span id="gcal-status">구글 캘린더 미연결</span>
+          </div>
+          <button class="gcal-btn" id="gcal-btn" onclick="toggleGcal()">연결하기</button>
         </div>
         <div class="cal-wrap">
           <div class="cal-dows"><div class="cal-dow">일</div><div class="cal-dow">월</div><div class="cal-dow">화</div><div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div></div>
@@ -475,6 +493,14 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
+// ── GOOGLE CALENDAR CONFIG ──
+const GCAL_CLIENT_ID = '19654032429-qnseeqn0h2u8o90klt19v1r8f2sbkm1q.apps.googleusercontent.com';
+const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+let gcalTokenClient = null;
+let gcalAccessToken = localStorage.getItem('v5_gcal_token') || null;
+let gcalTokenExpiry = parseInt(localStorage.getItem('v5_gcal_expiry') || '0');
+let gcalEvents = []; // events pulled from google calendar (raw, not persisted to firestore)
+
 // ── STATE ──
 const today = new Date();
 let myName = '', coupleCode = '';
@@ -601,6 +627,7 @@ function initUser(name, code) {
   if (!persons.includes(name)) { persons[0] = name; saveLocal(); }
   attachListeners();
   render();
+  initGcalUI();
 }
 
 // 코드 재설정 (연결 끊기)
@@ -615,6 +642,100 @@ window.resetCouple = function() {
   document.getElementById('scr-ob').classList.add('show');
   document.getElementById('ob-code').value = '';
 };
+
+// ── GOOGLE CALENDAR ──
+function initGcalUI() {
+  updateGcalStatus();
+  // gapi/gis may still be loading; poll briefly
+  let tries = 0;
+  const iv = setInterval(() => {
+    tries++;
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+      gcalTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GCAL_CLIENT_ID,
+        scope: GCAL_SCOPES,
+        callback: (resp) => {
+          if (resp.error) { showToast('구글 캘린더 연결에 실패했어요', 'error'); return; }
+          gcalAccessToken = resp.access_token;
+          gcalTokenExpiry = Date.now() + (resp.expires_in * 1000);
+          localStorage.setItem('v5_gcal_token', gcalAccessToken);
+          localStorage.setItem('v5_gcal_expiry', gcalTokenExpiry.toString());
+          updateGcalStatus();
+          fetchGcalEvents();
+        }
+      });
+      clearInterval(iv);
+      // if we already have a valid token, fetch immediately
+      if (gcalAccessToken && Date.now() < gcalTokenExpiry) {
+        fetchGcalEvents();
+      }
+    }
+    if (tries > 40) clearInterval(iv);
+  }, 250);
+}
+
+function updateGcalStatus() {
+  const dot = document.getElementById('gcal-dot');
+  const status = document.getElementById('gcal-status');
+  const btn = document.getElementById('gcal-btn');
+  if (!dot) return;
+  const connected = gcalAccessToken && Date.now() < gcalTokenExpiry;
+  dot.classList.toggle('on', !!connected);
+  status.textContent = connected ? '구글 캘린더 연결됨' : '구글 캘린더 미연결';
+  btn.textContent = connected ? '연결 해제' : '연결하기';
+  btn.className = 'gcal-btn' + (connected ? ' danger' : '');
+}
+
+window.toggleGcal = function() {
+  const connected = gcalAccessToken && Date.now() < gcalTokenExpiry;
+  if (connected) {
+    if (!confirm('구글 캘린더 연결을 해제할까요?')) return;
+    if (window.google && google.accounts && google.accounts.oauth2 && gcalAccessToken) {
+      google.accounts.oauth2.revoke(gcalAccessToken, () => {});
+    }
+    gcalAccessToken = null; gcalTokenExpiry = 0; gcalEvents = [];
+    localStorage.removeItem('v5_gcal_token');
+    localStorage.removeItem('v5_gcal_expiry');
+    updateGcalStatus();
+    renderCalendar();
+    showToast('구글 캘린더 연결을 해제했어요');
+  } else {
+    if (!gcalTokenClient) { showToast('잠시 후 다시 시도해주세요'); return; }
+    gcalTokenClient.requestAccessToken({ prompt: '' });
+  }
+};
+
+async function fetchGcalEvents() {
+  if (!gcalAccessToken) return;
+  try {
+    const timeMin = new Date(curY, curM - 2, 1).toISOString();
+    const timeMax = new Date(curY, curM + 1, 0).toISOString();
+    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=250`;
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + gcalAccessToken } });
+    if (res.status === 401) {
+      // token expired
+      gcalAccessToken = null; gcalTokenExpiry = 0;
+      localStorage.removeItem('v5_gcal_token');
+      localStorage.removeItem('v5_gcal_expiry');
+      updateGcalStatus();
+      return;
+    }
+    const data = await res.json();
+    gcalEvents = (data.items || []).map(ev => {
+      const startRaw = ev.start && (ev.start.date || ev.start.dateTime);
+      const date = startRaw ? startRaw.slice(0, 10) : null;
+      let time = '';
+      if (ev.start && ev.start.dateTime) {
+        const dt = new Date(ev.start.dateTime);
+        time = String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+      }
+      return { id: 'gcal_' + ev.id, title: ev.summary || '(제목 없음)', date, time, source: 'google' };
+    }).filter(e => e.date);
+    renderCalendar();
+  } catch (e) {
+    console.error('gcal fetch error', e);
+  }
+}
 
 // ── MODALS ──
 window.showM = function(id) {
@@ -861,6 +982,7 @@ window.switchSection = function(s) {
     document.getElementById('bnav-' + x).classList.toggle('active', x === s);
   });
   if (s === 'assets') renderAssets();
+  if (s === 'calendar' && gcalAccessToken && Date.now() < gcalTokenExpiry) fetchGcalEvents();
 };
 window.switchSub = function(section, sub) {
   if (section === 'budget') {
@@ -894,6 +1016,7 @@ window.changeMonth = function(d) {
   if (curM > 12) { curM = 1; curY++; }
   if (curM < 1) { curM = 12; curY--; }
   render();
+  if (curSection === 'calendar' && gcalAccessToken && Date.now() < gcalTokenExpiry) fetchGcalEvents();
 };
 
 // ── CALENDAR BUILD ──
@@ -1007,23 +1130,33 @@ function renderStats() {
   });
 }
 
-// ── CALENDAR RENDER ──
+// ── CALENDAR RENDER (merges shared events + google calendar events) ──
 function renderCalendar() {
   const ymStr = ym();
-  const evAll = events.filter(t => t.date && t.date.startsWith(ymStr));
+  const localAll = events.filter(t => t.date && t.date.startsWith(ymStr));
+  const gcalAll = gcalEvents.filter(t => t.date && t.date.startsWith(ymStr));
+  const evAll = [...localAll, ...gcalAll];
+
   const evByDay = {};
-  evAll.forEach(t => { const d = parseInt(t.date.split('-')[2]); if (!evByDay[d]) evByDay[d] = []; evByDay[d].push(t); });
+  evAll.forEach(t => {
+    const d = parseInt(t.date.split('-')[2]);
+    if (!evByDay[d]) evByDay[d] = [];
+    evByDay[d].push({ ...t, color: t.color || '#6366f1' });
+  });
   buildCal('cal-events', evByDay, 'evt');
+
   const evSec = document.getElementById('evt-list'); if (!evSec) return; evSec.innerHTML = '';
-  const sel = evAll.filter(t => parseInt(t.date.split('-')[2]) === selDay).sort((a, b) => a.time > b.time ? 1 : -1);
+  const sel = evAll.filter(t => parseInt(t.date.split('-')[2]) === selDay).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
   if (!sel.length) {
     evSec.innerHTML = `<div class="tx-empty">📅<br>${curM}월 ${selDay}일 일정이 없어요</div>`;
   } else {
     const pill = document.createElement('span'); pill.className = 'date-pill'; pill.textContent = curM + '월 ' + selDay + '일'; evSec.appendChild(pill);
     sel.forEach(ev => {
       const div = document.createElement('div'); div.className = 'evt-item';
-      const whoText = ev.who === 'both' ? '👫 둘 다' : ev.who === 'me' ? '👤 찬식' : '👤 서유';
-      div.innerHTML = `<div class="evt-bullet" style="background:${ev.color}"></div><div class="evt-body"><div class="evt-title">${ev.title}</div><div class="evt-meta">${ev.time || '하루 종일'}</div><span class="evt-who-tag" style="background:${ev.color}22;color:${ev.color}">${whoText}</span></div>`;
+      const isGoogle = ev.source === 'google';
+      const whoText = isGoogle ? '' : (ev.who === 'both' ? '👫 둘 다' : ev.who === 'me' ? '👤 찬식' : '👤 서유');
+      const color = ev.color || '#6366f1';
+      div.innerHTML = `<div class="evt-bullet" style="background:${color}"></div><div class="evt-body"><div class="evt-title">${ev.title}</div><div class="evt-meta">${ev.time || '하루 종일'}</div>${whoText ? `<span class="evt-who-tag" style="background:${color}22;color:${color}">${whoText}</span>` : ''}${isGoogle ? '<span class="evt-src-tag">📆 구글 캘린더</span>' : ''}</div>`;
       evSec.appendChild(div);
     });
   }
