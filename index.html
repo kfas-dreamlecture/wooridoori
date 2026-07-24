@@ -32,12 +32,8 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: var(--bg); display: flex; justify-content: center; min-height: 100vh; }
   .app { width: 100%; max-width: 430px; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; position: relative; }
-
-  /* ── SCREENS ── */
   .screen { display: none; flex-direction: column; flex: 1; }
   .screen.show { display: flex; }
-
-  /* ── ONBOARDING ── */
   .ob-wrap { padding: 40px 24px 32px; display: flex; flex-direction: column; flex: 1; }
   .ob-logo { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
   .ob-sub { font-size: 13px; color: var(--text2); margin-bottom: 32px; }
@@ -45,27 +41,19 @@
   .ob-info-title { font-size: 12px; font-weight: 600; color: var(--accent-text); margin-bottom: 4px; }
   .ob-info-body { font-size: 11px; color: var(--accent-text); line-height: 1.6; }
   .divider-text { text-align: center; font-size: 12px; color: var(--text3); margin: 14px 0; }
-
-  /* ── TOPBAR ── */
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 0; background: var(--surface); flex-shrink: 0; }
   .tb-month { font-size: 17px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; }
   .tb-month button { background: none; border: none; font-size: 18px; color: var(--text2); cursor: pointer; padding: 2px 6px; }
   .tb-actions { display: flex; gap: 8px; }
   .pill { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 4px; }
   .pill.accent { background: var(--accent-bg); color: var(--accent-text); border-color: #bfdbfe; }
-
-  /* ── NAV ── */
   .bot-nav { display: flex; background: var(--surface); border-top: 1px solid var(--border); padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 22px); flex-shrink: 0; }
   .bnav { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; border: none; background: none; color: var(--text3); font-size: 10px; cursor: pointer; padding: 4px 0; }
   .bnav svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; }
   .bnav.active { color: var(--accent); }
-
-  /* ── SUB TABS ── */
-  .sub-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 16px; }
-  .sub-tab { padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; }
+  .sub-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 16px; overflow-x: auto; }
+  .sub-tab { padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
   .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  /* ── SUMMARY BAR ── */
   .sum-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; margin: 10px 12px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; flex-shrink: 0; }
   .sc { text-align: center; padding: 10px 4px; }
   .sc + .sc { border-left: 1px solid var(--border); }
@@ -73,8 +61,6 @@
   .sc-val { font-size: 13px; font-weight: 600; color: var(--text); }
   .sc-val.inc { color: var(--success); }
   .sc-val.exp { color: var(--danger); }
-
-  /* ── CALENDAR ── */
   .cal-wrap { padding: 0 12px 4px; flex-shrink: 0; }
   .cal-dows { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 2px; }
   .cal-dow { text-align: center; font-size: 10px; color: var(--text3); padding: 2px 0; }
@@ -93,8 +79,6 @@
   .da.pos { color: var(--success); }
   .evt-dot-row { display: flex; gap: 2px; margin-top: 1px; justify-content: center; }
   .evt-dot { width: 4px; height: 4px; border-radius: 50%; }
-
-  /* ── TX LIST ── */
   .tx-area { flex: 1; overflow-y: auto; padding: 0 12px 110px; -webkit-overflow-scrolling: touch; }
   .date-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; background: var(--accent-bg); color: var(--accent-text); border-radius: 20px; margin: 10px 0 6px; }
   .tx-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
@@ -113,11 +97,7 @@
   .tx-empty { text-align: center; padding: 20px 0 10px; color: var(--text3); font-size: 12px; line-height: 2; }
   .reg-btn { width: 100%; margin-top: 10px; padding: 11px; background: var(--surface); border: 1.5px dashed var(--border); border-radius: 10px; font-size: 12px; color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
   .reg-btn:active { background: var(--bg); }
-
-  /* ── PRIVATE BANNER ── */
   .priv-bar { margin: 8px 12px 0; background: var(--pro-bg); border-radius: 8px; padding: 7px 12px; font-size: 11px; color: var(--pro-text); flex-shrink: 0; }
-
-  /* ── STATS ── */
   .stat-area { flex: 1; overflow-y: auto; padding: 10px 12px 110px; }
   .stat-switch { display: flex; background: var(--bg); border-radius: 8px; padding: 2px; margin-bottom: 12px; }
   .sw-btn { flex: 1; padding: 6px; text-align: center; font-size: 12px; font-weight: 500; color: var(--text2); border: none; background: none; border-radius: 6px; cursor: pointer; }
@@ -136,8 +116,6 @@
   .bar-track { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
   .bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
   .bar-val { font-size: 12px; font-weight: 600; color: var(--danger); white-space: nowrap; }
-
-  /* ── CALENDAR TAB ── */
   .cal-tab-body { display: flex; flex-direction: column; flex: 1; overflow: hidden; background: var(--surface); }
   .cal-tab-hdr { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 4px; flex-shrink: 0; }
   .cal-tab-hdr span { font-size: 12px; color: var(--text2); }
@@ -150,16 +128,12 @@
   .evt-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
   .evt-who-tag { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 8px; margin-top: 3px; }
   .evt-src-tag { display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 8px; margin-top: 3px; margin-left: 4px; background: #eef2ff; color: #4338ca; }
-
-  /* ── GCAL CONNECT BAR ── */
   .gcal-bar { margin: 8px 12px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
   .gcal-bar-left { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
   .gcal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
   .gcal-dot.on { background: var(--success); }
   .gcal-btn { font-size: 11px; padding: 5px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; white-space: nowrap; }
   .gcal-btn.danger { color: var(--danger); border-color: #fecaca; }
-
-  /* ── ASSETS ── */
   .asset-area { flex: 1; overflow-y: auto; padding: 10px 12px 110px; }
   .total-card { background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
   .total-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
@@ -181,8 +155,6 @@
   .asset-name { font-size: 13px; font-weight: 500; color: var(--text); }
   .asset-memo { font-size: 11px; color: var(--text2); margin-top: 1px; }
   .asset-amt { font-size: 14px; font-weight: 700; color: var(--text); flex-shrink: 0; }
-
-  /* ── MODALS ── */
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
   .modal-bg.open { display: flex; }
   .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 18px 16px calc(env(safe-area-inset-bottom) + 28px); width: 100%; max-width: 430px; max-height: 92vh; overflow-y: auto; }
@@ -225,13 +197,17 @@
   .subscribed-cal-count { font-size: 11px; color: var(--text2); flex-shrink: 0; }
   .help-box { background: var(--accent-bg); border-radius: 10px; padding: 10px 12px; font-size: 11px; color: var(--accent-text); line-height: 1.6; margin-top: 8px; }
   .help-box b { font-weight: 600; }
+  .capture-item { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--bg); }
+  .capture-item input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; }
+  .capture-fields { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .capture-fields input { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; background: var(--surface); color: var(--text); }
+  .capture-row2 { display: flex; gap: 4px; }
 </style>
 </head>
 <body>
 
 <div class="app" id="app">
 
-  <!-- ── ONBOARDING ── -->
   <div class="screen show" id="scr-ob">
     <div class="ob-wrap">
       <div class="ob-logo">우리 가계부 💑</div>
@@ -250,7 +226,6 @@
     </div>
   </div>
 
-  <!-- ── MAIN ── -->
   <div class="screen" id="scr-main">
 
     <div class="topbar">
@@ -265,12 +240,12 @@
       </div>
     </div>
 
-    <!-- BUDGET SECTION -->
     <div id="sec-budget" class="section" style="display:flex;flex-direction:column;flex:1;overflow:hidden;background:var(--surface)">
       <div class="sub-tabs">
         <div class="sub-tab active" onclick="switchSub('budget','shared')">공용</div>
         <div class="sub-tab" onclick="switchSub('budget','private')">개인</div>
         <div class="sub-tab" onclick="switchSub('budget','stats')">통계</div>
+        <div class="sub-tab" onclick="switchSub('budget','subs')">구독</div>
       </div>
 
       <div id="subbody-shared" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
@@ -311,9 +286,12 @@
           <div id="stat-content"></div>
         </div>
       </div>
+
+      <div id="subbody-subs" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+        <div class="stat-area" id="subs-area"></div>
+      </div>
     </div>
 
-    <!-- CALENDAR SECTION -->
     <div id="sec-calendar" class="section" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:var(--surface)">
       <div class="cal-tab-body">
         <div class="cal-tab-hdr">
@@ -329,7 +307,6 @@
       </div>
     </div>
 
-    <!-- ASSETS SECTION -->
     <div id="sec-assets" class="section" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:var(--surface)">
       <div class="sub-tabs">
         <div class="sub-tab active" onclick="switchSub('assets','total')">합산</div>
@@ -344,7 +321,6 @@
       </div>
     </div>
 
-    <!-- BOTTOM NAV -->
     <nav class="bot-nav">
       <button class="bnav active" id="bnav-budget" onclick="switchSection('budget')">
         <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -362,14 +338,13 @@
   </div>
 </div>
 
-<!-- ── MODALS ── -->
-
-<!-- TX MODAL -->
 <div class="modal-bg" id="modal-tx">
   <div class="modal">
     <div class="modal-title"><span id="tx-modal-title">가계부 등록</span> <button class="close-btn" onclick="hideM('modal-tx')">✕</button></div>
     <input type="hidden" id="f-editid">
     <input type="hidden" id="f-editbook">
+    <button class="reg-btn" style="margin-top:0;margin-bottom:10px" onclick="document.getElementById('capture-input').click()">📷 결제 캡처로 등록</button>
+    <input type="file" accept="image/*" id="capture-input" style="display:none" onchange="handleCaptureFile(event)">
     <div class="type-row">
       <button class="type-btn ae" id="tb-exp" onclick="setTxType('expense')">지출</button>
       <button class="type-btn" id="tb-inc" onclick="setTxType('income')">수입</button>
@@ -397,7 +372,25 @@
   </div>
 </div>
 
-<!-- ASSET MODAL -->
+<div class="modal-bg" id="modal-capture">
+  <div class="modal">
+    <div class="modal-title">캡처에서 인식된 결제 내역 <button class="close-btn" onclick="hideM('modal-capture')">✕</button></div>
+    <div id="capture-status" style="font-size:12px;color:var(--text2);margin-bottom:10px">이미지를 분석하고 있어요...</div>
+    <div id="capture-list"></div>
+    <div class="f2" style="margin-top:12px">
+      <div>
+        <label class="f-label" style="margin-top:0">일괄 가계부</label>
+        <select class="f-input" id="cap-book"><option value="shared">🏠 공용</option><option value="private">🔒 개인</option></select>
+      </div>
+      <div>
+        <label class="f-label" style="margin-top:0">일괄 카테고리</label>
+        <select class="f-input" id="cap-cat"></select>
+      </div>
+    </div>
+    <button class="save-btn" onclick="applyCaptureBulk()">선택 항목 일괄 등록</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-asset">
   <div class="modal">
     <div class="modal-title">자산 등록 <button class="close-btn" onclick="hideM('modal-asset')">✕</button></div>
@@ -415,7 +408,6 @@
   </div>
 </div>
 
-<!-- EVENT MODAL -->
 <div class="modal-bg" id="modal-evt">
   <div class="modal">
     <div class="modal-title">일정 추가 <button class="close-btn" onclick="hideM('modal-evt')">✕</button></div>
@@ -443,7 +435,27 @@
   </div>
 </div>
 
-<!-- CODE MODAL -->
+<div class="modal-bg" id="modal-sub">
+  <div class="modal">
+    <div class="modal-title"><span id="sub-modal-title">구독·고정비 등록</span> <button class="close-btn" onclick="hideM('modal-sub')">✕</button></div>
+    <input type="hidden" id="sub-editid">
+    <label class="f-label" style="margin-top:0">이름</label>
+    <input class="f-input" type="text" id="sub-name" placeholder="넷플릭스, 월세, 통신비...">
+    <div class="f2">
+      <div><label class="f-label">금액 (원)</label><input class="f-input" type="number" id="sub-amt" placeholder="0" inputmode="numeric"></div>
+      <div><label class="f-label">결제일</label><input class="f-input" type="number" id="sub-day" placeholder="1~31" min="1" max="31"></div>
+    </div>
+    <label class="f-label">가계부</label>
+    <select class="f-input" id="sub-book"><option value="shared">🏠 공용</option><option value="private">🔒 개인</option></select>
+    <label class="f-label">카테고리</label>
+    <div class="chip-row" id="sub-cat-chips"></div>
+    <label class="f-label">지출한 사람</label>
+    <div class="chip-row" id="sub-person-chips"></div>
+    <button class="save-btn" id="sub-save-btn" onclick="saveSub()">저장하기</button>
+    <button class="del-tx-btn" id="sub-del-btn" onclick="deleteSub()" style="display:none">삭제하기</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-code">
   <div class="modal">
     <div class="modal-title">커플 코드 <button class="close-btn" onclick="hideM('modal-code')">✕</button></div>
@@ -457,10 +469,8 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast" style="display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);font-size:13px;padding:10px 18px;border-radius:20px;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.2);pointer-events:none"></div>
 
-<!-- MANAGE MODAL (가계부 설정: 카테고리/지출자) -->
 <div class="modal-bg" id="modal-manage">
   <div class="modal">
     <div class="modal-title">카테고리 · 지출자 설정 <button class="close-btn" onclick="hideM('modal-manage')">✕</button></div>
@@ -473,7 +483,6 @@
   </div>
 </div>
 
-<!-- CALENDAR SETTINGS MODAL (캘린더 설정: 구독) -->
 <div class="modal-bg" id="modal-calsettings">
   <div class="modal">
     <div class="modal-title">캘린더 설정 <button class="close-btn" onclick="hideM('modal-calsettings')">✕</button></div>
@@ -502,7 +511,6 @@
   </div>
 </div>
 
-<!-- ── FIREBASE + APP LOGIC ── -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -522,20 +530,20 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
 
-// ── GOOGLE CALENDAR CONFIG ──
 const GCAL_CLIENT_ID = '19654032429-qnseeqn0h2u8o90klt19v1r8f2sbkm1q.apps.googleusercontent.com';
 const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 let gcalTokenClient = null;
 let gcalAccessToken = localStorage.getItem('v5_gcal_token') || null;
 let gcalTokenExpiry = parseInt(localStorage.getItem('v5_gcal_expiry') || '0');
-let gcalEvents = []; // events pulled from google calendar (raw, not persisted to firestore)
+let gcalEvents = [];
 
-// ── ICS SUBSCRIPTIONS (아이폰/기타 캘린더 구독) ──
-let subscribedCals = JSON.parse(localStorage.getItem('v5_subcals') || '[]'); // [{id, name, url, color}]
-let subscribedEvents = []; // flattened events from all subscribed calendars
+let subscribedCals = JSON.parse(localStorage.getItem('v5_subcals') || '[]');
+let subscribedEvents = [];
 const ICS_COLORS = ['#f97316', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b'];
 
-// ── STATE ──
+const VISION_API_KEY = 'AIzaSyDMe4-vv39ScLmdFtZO8o3bidfSsAfJiw8';
+let captureResults = [];
+
 const today = new Date();
 let myName = '', coupleCode = '';
 let curY = today.getFullYear(), curM = today.getMonth() + 1, selDay = today.getDate();
@@ -546,7 +554,9 @@ let txType = 'expense', selCat = '', selPerson = '', selAssetType = '예금', se
 let cats = JSON.parse(localStorage.getItem('v5_cats') || '["식비","교통","쇼핑","의료","문화","주거","저축","기타"]');
 let persons = JSON.parse(localStorage.getItem('v5_persons') || '["찬식","서유"]');
 let sharedTxs = [], privateTxs = [], events = [], assets = [];
-let unsubShared = null, unsubEvents = null, unsubAssets = null;
+let subs = [], privateSubs = [];
+let unsubShared = null, unsubEvents = null, unsubAssets = null, unsubSubs = null;
+let subEditBook = 'shared', selSubCat = '', selSubPerson = '';
 
 const CAT_EMOJI = {식비:'🍱',교통:'🚇',쇼핑:'🛍',의료:'💊',문화:'🎬',주거:'🏠',저축:'💰',기타:'📦',수입:'💵'};
 const ASSET_TYPES = ['예금','적금','주식','ETF','펀드','부동산','현금','연금','기타'];
@@ -560,7 +570,6 @@ function fmtB(n) {
   if (n >= 10000) return Math.round(n / 10000).toLocaleString() + '만';
   return fmt(n);
 }
-
 function showToast(msg, type = 'normal') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -575,21 +584,18 @@ function saveLocal() {
   localStorage.setItem('v5_cats', JSON.stringify(cats));
   localStorage.setItem('v5_persons', JSON.stringify(persons));
 }
-function saveSubscribedCals() {
-  localStorage.setItem('v5_subcals', JSON.stringify(subscribedCals));
-}
+function saveSubscribedCals() { localStorage.setItem('v5_subcals', JSON.stringify(subscribedCals)); }
+function saveSubLocal() { localStorage.setItem('v5_private_subs_' + myName, JSON.stringify(privateSubs)); }
 
-// ── FIRESTORE PATHS ──
 function sharedCol(sub) { return collection(db, 'couples', coupleCode, sub); }
 function privateCol(sub) { return collection(db, 'private', coupleCode + '_' + myName, sub); }
 
-// ── LISTENERS ──
 function attachListeners() {
   if (unsubShared) unsubShared();
   if (unsubEvents) unsubEvents();
   if (unsubAssets) unsubAssets();
+  if (unsubSubs) unsubSubs();
 
-  // shared transactions
   unsubShared = onSnapshot(
     query(sharedCol('transactions'), orderBy('date', 'desc')),
     snap => {
@@ -597,7 +603,6 @@ function attachListeners() {
       renderBudget();
     }
   );
-  // events
   unsubEvents = onSnapshot(
     query(sharedCol('events'), orderBy('date', 'asc')),
     snap => {
@@ -605,7 +610,6 @@ function attachListeners() {
       renderCalendar();
     }
   );
-  // assets (shared collection, owner field distinguishes)
   unsubAssets = onSnapshot(
     query(sharedCol('assets'), orderBy('createdAt', 'asc')),
     snap => {
@@ -613,12 +617,20 @@ function attachListeners() {
       if (curSection === 'assets') renderAssets();
     }
   );
+  unsubSubs = onSnapshot(
+    query(sharedCol('subscriptions'), orderBy('day', 'asc')),
+    snap => {
+      subs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      generateSubTxsForMonth();
+      if (curSubBudget === 'subs') renderSubs();
+    }
+  );
 
-  // private transactions (localStorage only for this demo; can extend to Firestore)
   privateTxs = JSON.parse(localStorage.getItem('v5_private_' + myName) || '[]');
+  privateSubs = JSON.parse(localStorage.getItem('v5_private_subs_' + myName) || '[]');
+  generateSubTxsForMonth();
 }
 
-// ── ONBOARDING ──
 window.startNew = function() {
   const name = document.getElementById('ob-name').value.trim() || '찬식';
   const code = Math.random().toString(36).substr(2, 6).toUpperCase();
@@ -629,7 +641,6 @@ window.joinCode = async function() {
   if (code.length < 6) { showToast('코드는 6자리예요. 다시 확인해주세요.', 'error'); return; }
   const name = document.getElementById('ob-name').value.trim() || '찬식';
 
-  // 코드 존재 여부 확인 (Firestore에 해당 커플 코드 데이터가 있는지 체크)
   const joinBtn = document.querySelector('#scr-ob .btn-outline');
   joinBtn.textContent = '확인 중...'; joinBtn.disabled = true;
 
@@ -649,7 +660,6 @@ window.joinCode = async function() {
     }
     initUser(name, code);
   } catch(e) {
-    // Firestore에 데이터가 없는 경우(신규)도 연결 허용 — 단 정확히 6자리인 경우만
     initUser(name, code);
   }
 };
@@ -668,12 +678,12 @@ function initUser(name, code) {
   fetchAllSubscribedCals();
 }
 
-// 코드 재설정 (연결 끊기)
 window.resetCouple = function() {
   if (!confirm('커플 연결을 해제하고 처음 화면으로 돌아갈까요?\n(내 데이터는 유지됩니다)')) return;
   if (unsubShared) unsubShared();
   if (unsubEvents) unsubEvents();
   if (unsubAssets) unsubAssets();
+  if (unsubSubs) unsubSubs();
   localStorage.removeItem('v5_code');
   localStorage.removeItem('v5_name');
   document.getElementById('scr-main').classList.remove('show');
@@ -681,7 +691,6 @@ window.resetCouple = function() {
   document.getElementById('ob-code').value = '';
 };
 
-// ── SETTINGS BUTTON ROUTING (탭별 다른 설정 모달) ──
 window.openSettings = function() {
   if (curSection === 'calendar') {
     showM('modal-calsettings');
@@ -690,10 +699,8 @@ window.openSettings = function() {
   }
 };
 
-// ── GOOGLE CALENDAR ──
 function initGcalUI() {
   updateGcalStatus();
-  // gapi/gis may still be loading; poll briefly
   let tries = 0;
   const iv = setInterval(() => {
     tries++;
@@ -712,7 +719,6 @@ function initGcalUI() {
         }
       });
       clearInterval(iv);
-      // if we already have a valid token, fetch immediately
       if (gcalAccessToken && Date.now() < gcalTokenExpiry) {
         fetchGcalEvents();
       }
@@ -769,7 +775,6 @@ async function gcalAuthedFetch(url) {
 async function fetchGcalEvents() {
   if (!gcalAccessToken) return;
   try {
-    // 1. 내 계정에 있는 모든 캘린더 목록을 가져온다 (기본 캘린더, 공휴일, 공유받은 캘린더 등)
     const listData = await gcalAuthedFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=250');
     if (!listData) return;
     const calendars = (listData.items || []).filter(c => c.selected !== false);
@@ -777,7 +782,6 @@ async function fetchGcalEvents() {
     const timeMin = new Date(curY, curM - 2, 1).toISOString();
     const timeMax = new Date(curY, curM + 1, 0).toISOString();
 
-    // 2. 각 캘린더의 일정을 병렬로 가져와서 합친다
     const results = await Promise.all(calendars.map(async (cal, i) => {
       const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=250`;
       try {
@@ -807,9 +811,6 @@ async function fetchGcalEvents() {
   }
 }
 
-// ── ICS 캘린더 구독 (아이폰/기타) ──
-// ICS 파일은 CORS 문제로 브라우저에서 직접 fetch가 대부분 막혀있어
-// 공개 CORS 프록시(r.jina.ai)를 경유해 텍스트를 가져온다.
 function icsProxyUrl(rawUrl) {
   let u = rawUrl.trim();
   if (u.startsWith('webcal://')) u = 'https://' + u.slice('webcal://'.length);
@@ -900,10 +901,141 @@ function renderCalSettingsList() {
   });
 }
 
-// ── MODALS ──
+// ── PAYMENT CAPTURE (Google Cloud Vision OCR) ──
+window.handleCaptureFile = async function(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  evt.target.value = '';
+  hideM('modal-tx');
+  document.getElementById('capture-status').textContent = '이미지를 분석하고 있어요...';
+  document.getElementById('capture-list').innerHTML = '';
+  showM('modal-capture');
+
+  try {
+    const base64 = await fileToBase64(file);
+    const visionRes = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{ image: { content: base64 }, features: [{ type: 'TEXT_DETECTION' }] }]
+      })
+    });
+    const data = await visionRes.json();
+    const text = data.responses && data.responses[0] && data.responses[0].fullTextAnnotation
+      ? data.responses[0].fullTextAnnotation.text : '';
+    if (!text) {
+      document.getElementById('capture-status').textContent = '텍스트를 인식하지 못했어요. 다른 이미지를 시도해주세요.';
+      return;
+    }
+    captureResults = parsePaymentText(text);
+    renderCaptureList();
+  } catch (e) {
+    console.error('capture error', e);
+    document.getElementById('capture-status').textContent = '분석 중 오류가 발생했어요.';
+  }
+};
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// 토스 결제 알림 캡처 형식: "23일 목요일" 같은 날짜 헤더 + "-12,680원" 금액 + "가맹점명 | 카드정보" 설명줄
+function parsePaymentText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const results = [];
+  let curDateLabel = null;
+  const nowY = curY, nowM = curM;
+
+  const dateHeaderRe = /^(\d{1,2})일\s*(월|화|수|목|금|토|일)?요?일?$/;
+  const amountRe = /^-?([0-9,]+)\s*원$/;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const dm = line.match(dateHeaderRe);
+    if (dm) {
+      const day = parseInt(dm[1]);
+      curDateLabel = dateStr(nowY, nowM, Math.min(day, new Date(nowY, nowM, 0).getDate()));
+      continue;
+    }
+    const am = line.match(amountRe);
+    if (am) {
+      const amount = parseInt(am[1].replace(/,/g, ''));
+      let merchant = '';
+      if (lines[i + 1]) {
+        merchant = lines[i + 1].split('|')[0].trim();
+      }
+      if (amount > 0) {
+        results.push({
+          merchant: merchant || '가맹점 확인 필요',
+          amount,
+          date: curDateLabel || dateStr(nowY, nowM, today.getDate()),
+          selected: true
+        });
+      }
+    }
+  }
+  return results;
+}
+
+function renderCaptureList() {
+  const status = document.getElementById('capture-status');
+  const list = document.getElementById('capture-list');
+  list.innerHTML = '';
+
+  const catSel = document.getElementById('cap-cat');
+  catSel.innerHTML = cats.map(c => `<option value="${c}">${cEmoji(c)} ${c}</option>`).join('');
+
+  if (!captureResults.length) {
+    status.textContent = '결제 항목을 인식하지 못했어요. 직접 입력해주세요.';
+    return;
+  }
+  status.textContent = `${captureResults.length}건을 인식했어요. 확인 후 등록해주세요.`;
+
+  captureResults.forEach((r, i) => {
+    const div = document.createElement('div'); div.className = 'capture-item';
+    div.innerHTML = `
+      <input type="checkbox" ${r.selected ? 'checked' : ''} onchange="captureResults[${i}].selected=this.checked">
+      <div class="capture-fields">
+        <input type="text" value="${r.merchant}" oninput="captureResults[${i}].merchant=this.value" placeholder="가맹점명">
+        <div class="capture-row2">
+          <input type="number" value="${r.amount}" oninput="captureResults[${i}].amount=parseFloat(this.value)||0" style="flex:1" placeholder="금액">
+          <input type="date" value="${r.date}" oninput="captureResults[${i}].date=this.value" style="flex:1">
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+window.applyCaptureBulk = async function() {
+  const book = document.getElementById('cap-book').value;
+  const cat = document.getElementById('cap-cat').value;
+  const selected = captureResults.filter(r => r.selected && r.amount > 0 && r.merchant);
+  if (!selected.length) { showToast('선택된 항목이 없어요', 'error'); return; }
+
+  for (const r of selected) {
+    const txData = { type: 'expense', amount: r.amount, desc: r.merchant, cat, person: '', date: r.date, who: myName };
+    if (book === 'shared') {
+      await addDoc(sharedCol('transactions'), { ...txData, createdAt: serverTimestamp() });
+    } else {
+      privateTxs.push({ id: 'ptx_' + Date.now() + '_' + Math.random().toString(36).slice(2), ...txData, createdAt: Date.now() });
+    }
+  }
+  if (book === 'private') {
+    localStorage.setItem('v5_private_' + myName, JSON.stringify(privateTxs));
+    renderBudget();
+  }
+  showToast(`${selected.length}건 등록했어요`);
+  captureResults = [];
+  hideM('modal-capture');
+};
+
 window.showM = function(id) {
   if (id === 'modal-tx') {
-    // 새로 여는 경우(수정 아님) 기본 상태로 리셋
     if (!document.getElementById('f-editid').value) {
       document.getElementById('tx-modal-title').textContent = '가계부 등록';
       document.getElementById('tx-save-btn').textContent = '저장하기';
@@ -923,7 +1055,6 @@ window.showM = function(id) {
 window.hideM = function(id) {
   document.getElementById(id).classList.remove('open');
   if (id === 'modal-tx') {
-    // 모달 닫을 때 수정 상태 초기화
     document.getElementById('f-editid').value = '';
     document.getElementById('f-editbook').value = '';
     document.getElementById('f-book').disabled = false;
@@ -934,14 +1065,12 @@ document.querySelectorAll('.modal-bg').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
 });
 
-// ── TX TYPE ──
 window.setTxType = function(t) {
   txType = t;
   document.getElementById('tb-exp').className = 'type-btn' + (t === 'expense' ? ' ae' : '');
   document.getElementById('tb-inc').className = 'type-btn' + (t === 'income' ? ' ai' : '');
 };
 
-// ── CHIPS ──
 function buildChips() {
   const cc = document.getElementById('cat-chips'); cc.innerHTML = '';
   cats.forEach(c => {
@@ -976,7 +1105,6 @@ window.pickColor = function(el) {
   el.classList.add('sel');
 };
 
-// ── SAVE TX (신규 등록 또는 수정) ──
 window.saveTx = async function() {
   const amt = parseFloat(document.getElementById('f-amt').value);
   const desc = document.getElementById('f-desc').value.trim();
@@ -995,7 +1123,6 @@ window.saveTx = async function() {
   };
 
   if (editId) {
-    // ── 수정 모드 ──
     if (editBook === 'shared') {
       const { doc: docRef, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
       await updateDoc(docRef(db, 'couples', coupleCode, 'transactions', editId), txData);
@@ -1009,7 +1136,6 @@ window.saveTx = async function() {
     }
     showToast('수정했어요');
   } else {
-    // ── 신규 등록 ──
     txData.createdAt = book === 'shared' ? serverTimestamp() : Date.now();
     if (book === 'shared') {
       await addDoc(sharedCol('transactions'), txData);
@@ -1029,7 +1155,6 @@ window.saveTx = async function() {
   hideM('modal-tx');
 };
 
-// ── 내역 클릭 시 수정 모달 열기 ──
 window.editTx = function(id, book) {
   const txList = book === 'shared' ? sharedTxs : privateTxs;
   const tx = txList.find(t => t.id === id);
@@ -1044,7 +1169,7 @@ window.editTx = function(id, book) {
   txType = tx.type;
   setTxType(tx.type);
   document.getElementById('f-book').value = book;
-  document.getElementById('f-book').disabled = true; // 수정 중엔 가계부 종류 변경 불가
+  document.getElementById('f-book').disabled = true;
   document.getElementById('f-date').value = tx.date;
   document.getElementById('f-desc').value = tx.desc;
   document.getElementById('f-amt').value = tx.amount;
@@ -1055,7 +1180,6 @@ window.editTx = function(id, book) {
   document.getElementById('modal-tx').classList.add('open');
 };
 
-// ── 내역 삭제 ──
 window.deleteTx = async function() {
   const editId = document.getElementById('f-editid').value;
   const editBook = document.getElementById('f-editbook').value;
@@ -1079,7 +1203,6 @@ window.deleteTx = async function() {
   showToast('삭제했어요');
 };
 
-// ── SAVE ASSET ──
 window.saveAsset = async function() {
   const amt = parseFloat(document.getElementById('a-amt').value);
   const name = document.getElementById('a-name').value.trim();
@@ -1096,7 +1219,6 @@ window.saveAsset = async function() {
   hideM('modal-asset');
 };
 
-// ── SAVE EVENT ──
 window.saveEvt = async function() {
   const title = document.getElementById('e-title').value.trim();
   const date = document.getElementById('e-date').value;
@@ -1110,7 +1232,6 @@ window.saveEvt = async function() {
   hideM('modal-evt');
 };
 
-// ── MANAGE ──
 window.addCat = function() {
   const v = document.getElementById('new-cat').value.trim();
   if (!v || cats.includes(v)) return;
@@ -1138,7 +1259,6 @@ function buildManage() {
   });
 }
 
-// ── NAV ──
 window.switchSection = function(s) {
   curSection = s;
   ['budget', 'calendar', 'assets'].forEach(x => {
@@ -1152,12 +1272,13 @@ window.switchSub = function(section, sub) {
   if (section === 'budget') {
     curSubBudget = sub;
     document.querySelectorAll('#sec-budget .sub-tab').forEach((el, i) =>
-      el.classList.toggle('active', ['shared', 'private', 'stats'][i] === sub));
-    ['shared', 'private', 'stats'].forEach(x => {
+      el.classList.toggle('active', ['shared', 'private', 'stats', 'subs'][i] === sub));
+    ['shared', 'private', 'stats', 'subs'].forEach(x => {
       const el = document.getElementById('subbody-' + x);
       if (el) { el.style.display = x === sub ? 'flex' : 'none'; if (x === sub) el.style.flexDirection = 'column'; }
     });
     if (sub === 'stats') renderStats();
+    if (sub === 'subs') renderSubs();
   } else {
     curSubAssets = sub;
     document.querySelectorAll('#sec-assets .sub-tab').forEach((el, i) =>
@@ -1181,9 +1302,9 @@ window.changeMonth = function(d) {
   if (curM < 1) { curM = 12; curY--; }
   render();
   if (curSection === 'calendar' && gcalAccessToken && Date.now() < gcalTokenExpiry) fetchGcalEvents();
+  generateSubTxsForMonth();
 };
 
-// ── CALENDAR BUILD ──
 function buildCal(gridId, byDay, type) {
   const first = new Date(curY, curM - 1, 1).getDay();
   const days = new Date(curY, curM, 0).getDate();
@@ -1220,7 +1341,6 @@ function buildCal(gridId, byDay, type) {
   }
 }
 
-// ── RENDER TX AREA ──
 function renderTxArea(areaId, calId, txList, book) {
   const ymStr = ym();
   const all = txList.filter(t => t.date && t.date.startsWith(ymStr));
@@ -1254,7 +1374,7 @@ function renderTxArea(areaId, calId, txList, book) {
       const div = document.createElement('div'); div.className = 'tx-item';
       div.setAttribute('role', 'button');
       div.addEventListener('click', function() { editTx(tx.id, book); });
-      div.innerHTML = `<div class="tx-ico">${cEmoji(tx.cat)}</div><div class="tx-body"><div class="tx-name">${tx.desc}</div><div class="tx-tags"><span class="tag">${tx.cat || '기타'}</span>${tx.person ? `<span class="tag person">👤 ${tx.person}</span>` : ''}</div></div><div class="tx-amt ${tx.type === 'income' ? 'inc' : ''}">${tx.type === 'income' ? '+' : '-'}${fmt(tx.amount)}</div>`;
+      div.innerHTML = `<div class="tx-ico">${cEmoji(tx.cat)}</div><div class="tx-body"><div class="tx-name">${tx.desc}</div><div class="tx-tags"><span class="tag">${tx.cat || '기타'}</span>${tx.person ? `<span class="tag person">👤 ${tx.person}</span>` : ''}${tx.subId ? '<span class="tag">🔁 구독</span>' : ''}</div></div><div class="tx-amt ${tx.type === 'income' ? 'inc' : ''}">${tx.type === 'income' ? '+' : '-'}${fmt(tx.amount)}</div>`;
       sec.appendChild(div);
     });
   }
@@ -1264,7 +1384,6 @@ function renderTxArea(areaId, calId, txList, book) {
   sec.appendChild(rb);
 }
 
-// ── STATS ──
 function renderStats() {
   const txList = statBook === 'shared' ? sharedTxs : privateTxs;
   const ymStr = ym();
@@ -1294,7 +1413,6 @@ function renderStats() {
   });
 }
 
-// ── CALENDAR RENDER (merges shared events + google calendar events + subscribed ics events) ──
 function renderCalendar() {
   const ymStr = ym();
   const localAll = events.filter(t => t.date && t.date.startsWith(ymStr));
@@ -1337,7 +1455,6 @@ function renderCalendar() {
   evSec.appendChild(rb);
 }
 
-// ── ASSETS RENDER ──
 function renderAssets() {
   const meA = assets.filter(a => a.owner === 'me');
   const partnerA = assets.filter(a => a.owner === 'partner');
@@ -1356,7 +1473,6 @@ function renderAssets() {
     return rb;
   }
 
-  // TOTAL
   const tc = document.getElementById('subbody-assets-total'); if (!tc) return; tc.innerHTML = '';
   tc.innerHTML = `<div class="total-card"><div class="total-label">총 자산</div><div class="total-val">${fmtB(grand)}</div></div><div class="person-split"><div class="person-card me"><div class="person-card-name">찬식</div><div class="person-card-val">${fmtB(meTotal)}</div></div><div class="person-card partner"><div class="person-card-name">서유</div><div class="person-card-val">${fmtB(partnerTotal)}</div></div></div>`;
   if (assets.length === 0) tc.insertAdjacentHTML('beforeend', '<div class="tx-empty">💰<br>자산을 등록해보세요</div>');
@@ -1371,14 +1487,12 @@ function renderAssets() {
   }
   tc.appendChild(addAssetBtn('me'));
 
-  // ME
   const mc = document.getElementById('subbody-assets-me'); if (!mc) return; mc.innerHTML = '';
   mc.innerHTML = `<div class="total-card" style="background:var(--accent-bg)"><div class="total-label" style="color:var(--accent-text)">찬식 총 자산</div><div class="total-val" style="color:var(--accent-text)">${fmtB(meTotal)}</div></div>`;
   if (!meA.length) mc.insertAdjacentHTML('beforeend', '<div class="tx-empty">💰<br>등록된 자산이 없어요</div>');
   else meA.forEach(a => mc.insertAdjacentHTML('beforeend', assetCard(a)));
   mc.appendChild(addAssetBtn('me'));
 
-  // PARTNER
   const pi = document.getElementById('asset-partner-inner'); if (!pi) return; pi.innerHTML = '';
   pi.innerHTML = `<div class="total-card" style="background:var(--pro-bg)"><div class="total-label" style="color:var(--pro-text)">서유 총 자산</div><div class="total-val" style="color:var(--pro-text)">${fmtB(partnerTotal)}</div></div>`;
   if (!partnerA.length) pi.insertAdjacentHTML('beforeend', '<div class="tx-empty">💰<br>등록된 자산이 없어요</div>');
@@ -1386,11 +1500,190 @@ function renderAssets() {
   pi.appendChild(addAssetBtn('partner'));
 }
 
-// ── MAIN RENDER ──
+// ── SUBSCRIPTIONS (구독/고정비) ──
+function buildSubChips() {
+  const cc = document.getElementById('sub-cat-chips'); cc.innerHTML = '';
+  cats.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'chip' + (selSubCat === c ? ' sel' : '');
+    el.textContent = cEmoji(c) + ' ' + c;
+    el.onclick = () => { selSubCat = c; buildSubChips(); };
+    cc.appendChild(el);
+  });
+  const pc = document.getElementById('sub-person-chips'); pc.innerHTML = '';
+  [{ v: '', l: '미지정' }, ...persons.map(p => ({ v: p, l: '👤 ' + p }))].forEach(({ v, l }) => {
+    const el = document.createElement('div');
+    el.className = 'chip' + (selSubPerson === v ? ' sel' : '');
+    el.textContent = l;
+    el.onclick = () => { selSubPerson = v; buildSubChips(); };
+    pc.appendChild(el);
+  });
+}
+
+window.saveSub = async function() {
+  const name = document.getElementById('sub-name').value.trim();
+  const amt = parseFloat(document.getElementById('sub-amt').value);
+  const day = parseInt(document.getElementById('sub-day').value);
+  if (!name) { alert('이름을 입력해주세요'); return; }
+  if (!amt || amt <= 0) { alert('금액을 입력해주세요'); return; }
+  if (!day || day < 1 || day > 31) { alert('결제일을 1~31 사이로 입력해주세요'); return; }
+
+  const editId = document.getElementById('sub-editid').value;
+  const book = document.getElementById('sub-book').value;
+  const subData = { name, amount: amt, day, cat: selSubCat, person: selSubPerson, book };
+
+  if (editId) {
+    if (subEditBook === 'shared') {
+      const { doc: docRef, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      await updateDoc(docRef(db, 'couples', coupleCode, 'subscriptions', editId), subData);
+    } else {
+      const idx = privateSubs.findIndex(s => s.id === editId);
+      if (idx > -1) { privateSubs[idx] = { ...privateSubs[idx], ...subData }; saveSubLocal(); }
+      renderSubs();
+    }
+    showToast('수정했어요');
+  } else {
+    if (book === 'shared') {
+      await addDoc(sharedCol('subscriptions'), { ...subData, createdAt: serverTimestamp() });
+    } else {
+      privateSubs.push({ id: 'psub_' + Date.now(), ...subData });
+      saveSubLocal();
+      renderSubs();
+    }
+    showToast('구독을 등록했어요');
+  }
+
+  document.getElementById('sub-name').value = '';
+  document.getElementById('sub-amt').value = '';
+  document.getElementById('sub-day').value = '';
+  document.getElementById('sub-editid').value = '';
+  selSubCat = ''; selSubPerson = '';
+  hideM('modal-sub');
+  generateSubTxsForMonth();
+};
+
+window.editSub = function(id, book) {
+  const list = book === 'shared' ? subs : privateSubs;
+  const s = list.find(x => x.id === id);
+  if (!s) return;
+  subEditBook = book;
+  document.getElementById('sub-editid').value = id;
+  document.getElementById('sub-modal-title').textContent = '구독·고정비 수정';
+  document.getElementById('sub-save-btn').textContent = '수정하기';
+  document.getElementById('sub-del-btn').style.display = 'block';
+  document.getElementById('sub-name').value = s.name;
+  document.getElementById('sub-amt').value = s.amount;
+  document.getElementById('sub-day').value = s.day;
+  document.getElementById('sub-book').value = book;
+  document.getElementById('sub-book').disabled = true;
+  selSubCat = s.cat || ''; selSubPerson = s.person || '';
+  buildSubChips();
+  document.getElementById('modal-sub').classList.add('open');
+};
+
+window.deleteSub = async function() {
+  const editId = document.getElementById('sub-editid').value;
+  if (!editId) return;
+  if (!confirm('이 구독을 삭제할까요? (이미 생성된 지출 내역은 유지돼요)')) return;
+  if (subEditBook === 'shared') {
+    const { doc: docRef, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await delDoc(docRef(db, 'couples', coupleCode, 'subscriptions', editId));
+  } else {
+    privateSubs = privateSubs.filter(s => s.id !== editId);
+    saveSubLocal();
+    renderSubs();
+  }
+  document.getElementById('sub-editid').value = '';
+  hideM('modal-sub');
+  showToast('삭제했어요');
+};
+
+async function generateSubTxsForMonth() {
+  const ymStr = ym();
+  const daysInMonth = new Date(curY, curM, 0).getDate();
+
+  for (const s of subs) {
+    const already = sharedTxs.some(t => t.subId === s.id && t.date && t.date.startsWith(ymStr));
+    if (already) continue;
+    const day = Math.min(s.day, daysInMonth);
+    const date = dateStr(curY, curM, day);
+    try {
+      await addDoc(sharedCol('transactions'), {
+        type: 'expense', amount: s.amount, desc: s.name, cat: s.cat || '', person: s.person || '',
+        date, who: myName, subId: s.id, createdAt: serverTimestamp()
+      });
+    } catch (e) { console.error('sub auto-gen error', e); }
+  }
+
+  let changed = false;
+  for (const s of privateSubs) {
+    const already = privateTxs.some(t => t.subId === s.id && t.date && t.date.startsWith(ymStr));
+    if (already) continue;
+    const day = Math.min(s.day, daysInMonth);
+    const date = dateStr(curY, curM, day);
+    privateTxs.push({
+      id: 'ptx_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+      type: 'expense', amount: s.amount, desc: s.name, cat: s.cat || '', person: s.person || '',
+      date, who: myName, subId: s.id, createdAt: Date.now()
+    });
+    changed = true;
+  }
+  if (changed) {
+    localStorage.setItem('v5_private_' + myName, JSON.stringify(privateTxs));
+    renderBudget();
+  }
+}
+
+function renderSubs() {
+  const el = document.getElementById('subs-area'); if (!el) return; el.innerHTML = '';
+
+  const sharedTotal = subs.reduce((s, x) => s + x.amount, 0);
+  const privateTotal = privateSubs.reduce((s, x) => s + x.amount, 0);
+
+  el.innerHTML = `<div class="metric-row"><div class="metric"><div class="metric-label">공용 구독 합계</div><div class="metric-val" style="color:var(--danger)">${fmt(sharedTotal)}</div></div><div class="metric"><div class="metric-label">개인 구독 합계</div><div class="metric-val" style="color:var(--danger)">${fmt(privateTotal)}</div></div></div>`;
+
+  function subRow(s, book) {
+    const row = document.createElement('div'); row.className = 'tx-item'; row.style.cursor = 'pointer';
+    row.onclick = () => editSub(s.id, book);
+    const bookTag = book === 'shared' ? '<span class="tag person">🏠 공용</span>' : '<span class="tag person">🔒 개인</span>';
+    row.innerHTML = `<div class="tx-ico">${cEmoji(s.cat)}</div><div class="tx-body"><div class="tx-name">${s.name}</div><div class="tx-tags"><span class="tag">매월 ${s.day}일</span>${s.cat ? `<span class="tag">${s.cat}</span>` : ''}${s.person ? `<span class="tag person">👤 ${s.person}</span>` : ''}${bookTag}</div></div><div class="tx-amt">-${fmt(s.amount)}</div>`;
+    return row;
+  }
+
+  if (!subs.length && !privateSubs.length) {
+    el.insertAdjacentHTML('beforeend', '<div class="tx-empty">🔁<br>등록된 구독·고정비가 없어요<br>매월 같은 날짜에 자동으로 지출 내역이 생겨요</div>');
+  } else {
+    if (subs.length) {
+      el.insertAdjacentHTML('beforeend', '<div class="section-title" style="margin-top:14px">🏠 공용 구독</div>');
+      subs.forEach(s => el.appendChild(subRow(s, 'shared')));
+    }
+    if (privateSubs.length) {
+      el.insertAdjacentHTML('beforeend', '<div class="section-title" style="margin-top:14px">🔒 개인 구독</div>');
+      privateSubs.forEach(s => el.appendChild(subRow(s, 'private')));
+    }
+  }
+
+  const rb = document.createElement('button'); rb.className = 'reg-btn';
+  rb.innerHTML = '＋ 구독·고정비 등록';
+  rb.onclick = () => {
+    document.getElementById('sub-modal-title').textContent = '구독·고정비 등록';
+    document.getElementById('sub-save-btn').textContent = '저장하기';
+    document.getElementById('sub-del-btn').style.display = 'none';
+    document.getElementById('sub-editid').value = '';
+    document.getElementById('sub-book').disabled = false;
+    document.getElementById('sub-book').value = 'shared';
+    selSubCat = ''; selSubPerson = '';
+    buildSubChips();
+    document.getElementById('modal-sub').classList.add('open');
+  };
+  el.appendChild(rb);
+}
+
 function renderBudget() {
   renderTxArea('tx-shared', 'cal-shared', sharedTxs, 'shared');
   renderTxArea('tx-private', 'cal-private', privateTxs, 'private');
   if (curSubBudget === 'stats') renderStats();
+  if (curSubBudget === 'subs') renderSubs();
 }
 
 function render() {
@@ -1400,7 +1693,6 @@ function render() {
   if (curSection === 'assets') renderAssets();
 }
 
-// ── INIT ──
 const savedCode = localStorage.getItem('v5_code');
 const savedName = localStorage.getItem('v5_name');
 if (savedCode && savedName) {
