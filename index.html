@@ -917,17 +917,24 @@ window.handleCaptureFile = async function(evt) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        requests: [{ image: { content: base64 }, features: [{ type: 'TEXT_DETECTION' }] }]
+        requests: [{ image: { content: base64 }, features: [{ type: 'DOCUMENT_TEXT_DETECTION' }] }]
       })
     });
     const data = await visionRes.json();
-    const text = data.responses && data.responses[0] && data.responses[0].fullTextAnnotation
-      ? data.responses[0].fullTextAnnotation.text : '';
-    if (!text) {
+    const resp = data.responses && data.responses[0];
+    const words = extractWordsWithPositions(resp);
+    let results = words.length ? parsePaymentWords(words) : [];
+    if (!results.length) {
+      const fallbackText = resp && resp.fullTextAnnotation ? resp.fullTextAnnotation.text : '';
+      results = fallbackText ? parsePaymentText(fallbackText) : [];
+    }
+    if (!results.length) {
       document.getElementById('capture-status').textContent = '텍스트를 인식하지 못했어요. 다른 이미지를 시도해주세요.';
+      captureResults = [];
+      renderCaptureList();
       return;
     }
-    captureResults = parsePaymentText(text);
+    captureResults = results;
     renderCaptureList();
   } catch (e) {
     console.error('capture error', e);
@@ -944,39 +951,105 @@ function fileToBase64(file) {
   });
 }
 
-// 토스 결제 알림 캡처 형식: "23일 목요일" 같은 날짜 헤더 + "-12,680원" 금액 + "가맹점명 | 카드정보" 설명줄
+// Vision API의 textAnnotations(단어 단위 + 좌표)에서 첫 항목(전체 요약)을 제외하고 각 단어의 위치를 뽑는다.
+function extractWordsWithPositions(resp) {
+  if (!resp || !resp.textAnnotations || resp.textAnnotations.length < 2) return [];
+  return resp.textAnnotations.slice(1).map(a => {
+    const verts = a.boundingPoly.vertices;
+    const ys = verts.map(v => v.y || 0);
+    const xs = verts.map(v => v.x || 0);
+    return {
+      text: a.description,
+      yTop: Math.min(...ys),
+      yBottom: Math.max(...ys),
+      yCenter: (Math.min(...ys) + Math.max(...ys)) / 2,
+      xLeft: Math.min(...xs)
+    };
+  });
+}
+
+// 세로 위치(y좌표)가 비슷한 단어끼리 같은 "행"으로 묶고, 행 안에서는 x좌표 순으로 정렬한다.
+// fullTextAnnotation.text의 줄바꿈 순서는 로고/아이콘 옆 텍스트 때문에 실제 레이아웃과 어긋날 수 있어 신뢰하지 않는다.
+function groupWordsIntoRows(words) {
+  const sorted = [...words].sort((a, b) => a.yCenter - b.yCenter);
+  const heights = sorted.map(w => w.yBottom - w.yTop).filter(h => h > 0);
+  const avgHeight = heights.length ? heights.reduce((s, h) => s + h, 0) / heights.length : 20;
+  const rowThreshold = avgHeight * 0.6;
+
+  const rows = [];
+  sorted.forEach(w => {
+    let row = rows.find(r => Math.abs(r.yCenter - w.yCenter) < rowThreshold);
+    if (!row) {
+      row = { yCenter: w.yCenter, words: [] };
+      rows.push(row);
+    }
+    row.words.push(w);
+    row.yCenter = row.words.reduce((s, x) => s + x.yCenter, 0) / row.words.length;
+  });
+
+  return rows
+    .sort((a, b) => a.yCenter - b.yCenter)
+    .map(r => {
+      const ws = r.words.sort((a, b) => a.xLeft - b.xLeft);
+      return ws.map(w => w.text).join(' ').trim();
+    })
+    .filter(Boolean);
+}
+
+// 토스/카드사 결제 알림 캡처: "23일 목요일" 날짜 헤더 + "-12,680원" 금액 줄 + 바로 아래 "가맹점명 | 카드정보" 줄
+function parsePaymentWords(words) {
+  const rows = groupWordsIntoRows(words);
+  return parsePaymentLines(rows);
+}
+
+// 폴백: 좌표 정보 없이 줄바꿈 텍스트만 있을 때 사용
 function parsePaymentText(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  return parsePaymentLines(lines);
+}
+
+// 공통 파싱 로직: 줄 배열을 받아 날짜 헤더 + 금액 + 가맹점명을 추출한다.
+function parsePaymentLines(lines) {
   const results = [];
   let curDateLabel = null;
   const nowY = curY, nowM = curM;
 
   const dateHeaderRe = /^(\d{1,2})일\s*(월|화|수|목|금|토|일)?요?일?$/;
-  const amountRe = /^-?([0-9,]+)\s*원$/;
+  const amountRe = /-?([0-9][0-9,]*)\s*원/;
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const dm = line.match(dateHeaderRe);
+    const line = lines[i].trim();
+    if (!line) continue;
+    const compact = line.replace(/\s/g, '');
+
+    const dm = compact.match(dateHeaderRe);
     if (dm) {
       const day = parseInt(dm[1]);
       curDateLabel = dateStr(nowY, nowM, Math.min(day, new Date(nowY, nowM, 0).getDate()));
       continue;
     }
-    const am = line.match(amountRe);
+
+    const am = line.match(amountRe) || compact.match(amountRe);
     if (am) {
       const amount = parseInt(am[1].replace(/,/g, ''));
+      if (!amount || amount <= 0) continue;
+
       let merchant = '';
-      if (lines[i + 1]) {
-        merchant = lines[i + 1].split('|')[0].trim();
+      for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+        const nextLine = (lines[j] || '').trim();
+        if (!nextLine) continue;
+        const nextCompact = nextLine.replace(/\s/g, '');
+        if (amountRe.test(nextCompact) || dateHeaderRe.test(nextCompact)) break;
+        merchant = nextLine.split('|')[0].trim();
+        break;
       }
-      if (amount > 0) {
-        results.push({
-          merchant: merchant || '가맹점 확인 필요',
-          amount,
-          date: curDateLabel || dateStr(nowY, nowM, today.getDate()),
-          selected: true
-        });
-      }
+
+      results.push({
+        merchant: merchant || '가맹점 확인 필요',
+        amount,
+        date: curDateLabel || dateStr(nowY, nowM, today.getDate()),
+        selected: true
+      });
     }
   }
   return results;
