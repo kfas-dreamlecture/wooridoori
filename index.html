@@ -387,6 +387,8 @@
         <select class="f-input" id="cap-cat"></select>
       </div>
     </div>
+    <label class="f-label">일괄 지출한 사람</label>
+    <select class="f-input" id="cap-person"></select>
     <button class="save-btn" onclick="applyCaptureBulk()">선택 항목 일괄 등록</button>
   </div>
 </div>
@@ -1079,6 +1081,10 @@ function renderCaptureList() {
   const catSel = document.getElementById('cap-cat');
   catSel.innerHTML = cats.map(c => `<option value="${c}">${cEmoji(c)} ${c}</option>`).join('');
 
+  const personSel = document.getElementById('cap-person');
+  personSel.innerHTML = '<option value="">미지정</option>' + persons.map(p => `<option value="${p}">👤 ${p}</option>`).join('');
+  personSel.value = persons.includes(myName) ? myName : '';
+
   if (!captureResults.length) {
     status.textContent = '결제 항목을 인식하지 못했어요. 직접 입력해주세요.';
     return;
@@ -1103,11 +1109,12 @@ function renderCaptureList() {
 window.applyCaptureBulk = async function() {
   const book = document.getElementById('cap-book').value;
   const cat = document.getElementById('cap-cat').value;
+  const person = document.getElementById('cap-person').value;
   const selected = captureResults.filter(r => r.selected && r.amount > 0 && r.merchant);
   if (!selected.length) { showToast('선택된 항목이 없어요', 'error'); return; }
 
   for (const r of selected) {
-    const txData = { type: 'expense', amount: r.amount, desc: r.merchant, cat, person: '', date: r.date, who: myName };
+    const txData = { type: 'expense', amount: r.amount, desc: r.merchant, cat, person, date: r.date, who: myName };
     if (book === 'shared') {
       await addDoc(sharedCol('transactions'), { ...txData, createdAt: serverTimestamp() });
     } else {
