@@ -921,7 +921,21 @@ window.handleCaptureFile = async function(evt) {
       })
     });
     const data = await visionRes.json();
+    if (data.error) {
+      console.error('vision api error', data.error);
+      document.getElementById('capture-status').textContent = `분석 실패: ${data.error.message || 'Vision API 오류'} (코드 ${data.error.code})`;
+      captureResults = [];
+      renderCaptureList();
+      return;
+    }
     const resp = data.responses && data.responses[0];
+    if (resp && resp.error) {
+      console.error('vision api response error', resp.error);
+      document.getElementById('capture-status').textContent = `분석 실패: ${resp.error.message || 'Vision API 오류'}`;
+      captureResults = [];
+      renderCaptureList();
+      return;
+    }
     const words = extractWordsWithPositions(resp);
     let results = words.length ? parsePaymentWords(words) : [];
     if (!results.length) {
@@ -938,7 +952,7 @@ window.handleCaptureFile = async function(evt) {
     renderCaptureList();
   } catch (e) {
     console.error('capture error', e);
-    document.getElementById('capture-status').textContent = '분석 중 오류가 발생했어요.';
+    document.getElementById('capture-status').textContent = `분석 중 오류가 발생했어요: ${e.message || e}`;
   }
 };
 
@@ -1015,7 +1029,9 @@ function parsePaymentLines(lines) {
   const nowY = curY, nowM = curM;
 
   const dateHeaderRe = /^(\d{1,2})일\s*(월|화|수|목|금|토|일)?요?일?$/;
-  const amountRe = /-?([0-9][0-9,]*)\s*원/;
+  // "원" 글자가 붙어있으면 자릿수 제한 없이 인식하고, 없어도 1,000단위 콤마가 있으면 금액으로 인정한다.
+  // (Vision OCR이 "원" 글자만 통째로 누락시키는 경우가 있어, 콤마 포맷을 보조 신호로 사용)
+  const amountRe = /-?([0-9]{1,3}(?:,[0-9]{3})+)\s*원?|-?([0-9]+)\s*원/;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -1031,7 +1047,7 @@ function parsePaymentLines(lines) {
 
     const am = line.match(amountRe) || compact.match(amountRe);
     if (am) {
-      const amount = parseInt(am[1].replace(/,/g, ''));
+      const amount = parseInt((am[1] || am[2]).replace(/,/g, ''));
       if (!amount || amount <= 0) continue;
 
       let merchant = '';
