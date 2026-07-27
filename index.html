@@ -1091,17 +1091,24 @@ function renderCaptureList() {
   }
   status.textContent = `${captureResults.length}건을 인식했어요. 확인 후 등록해주세요.`;
 
+  // 인라인 on* 속성 문자열은 module 스코프 변수(captureResults)를 참조할 수 없어(전역 스코프에서 실행됨)
+  // 체크/수정이 반영되지 않는 버그가 있었다. addEventListener로 클로저를 통해 직접 captureResults를 갱신한다.
   captureResults.forEach((r, i) => {
     const div = document.createElement('div'); div.className = 'capture-item';
     div.innerHTML = `
-      <input type="checkbox" ${r.selected ? 'checked' : ''} onchange="captureResults[${i}].selected=this.checked">
+      <input type="checkbox" ${r.selected ? 'checked' : ''}>
       <div class="capture-fields">
-        <input type="text" value="${r.merchant}" oninput="captureResults[${i}].merchant=this.value" placeholder="가맹점명">
+        <input type="text" value="${r.merchant}" placeholder="가맹점명">
         <div class="capture-row2">
-          <input type="number" value="${r.amount}" oninput="captureResults[${i}].amount=parseFloat(this.value)||0" style="flex:1" placeholder="금액">
-          <input type="date" value="${r.date}" oninput="captureResults[${i}].date=this.value" style="flex:1">
+          <input type="number" value="${r.amount}" style="flex:1" placeholder="금액">
+          <input type="date" value="${r.date}" style="flex:1">
         </div>
       </div>`;
+    const [chk, merchantInput, amtInput, dateInput] = div.querySelectorAll('input');
+    chk.addEventListener('change', () => { captureResults[i].selected = chk.checked; });
+    merchantInput.addEventListener('input', () => { captureResults[i].merchant = merchantInput.value; });
+    amtInput.addEventListener('input', () => { captureResults[i].amount = parseFloat(amtInput.value) || 0; });
+    dateInput.addEventListener('input', () => { captureResults[i].date = dateInput.value; });
     list.appendChild(div);
   });
 }
