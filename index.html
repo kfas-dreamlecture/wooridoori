@@ -513,6 +513,13 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modal-stat-detail">
+  <div class="modal">
+    <div class="modal-title"><span id="stat-detail-title">세부 내역</span> <button class="close-btn" onclick="hideM('modal-stat-detail')">✕</button></div>
+    <div id="stat-detail-list"></div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -1510,11 +1517,41 @@ function renderStats() {
   const maxV = sorted.length ? sorted[0][1] : 1;
   if (!sorted.length) { sec.insertAdjacentHTML('beforeend', '<div style="text-align:center;padding:1rem;color:var(--text3);font-size:12px">지출 내역이 없어요</div>'); return; }
   sorted.forEach(([k, v]) => {
-    const row = document.createElement('div'); row.className = 'bar-row';
+    const row = document.createElement('div'); row.className = 'bar-row'; row.style.cursor = 'pointer';
     row.innerHTML = `<div class="bar-body"><div class="bar-label">${statGroup === 'cat' ? cEmoji(k) + ' ' : statGroup === 'person' ? '👤 ' : '📅 '}${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v / maxV * 100)}%"></div></div></div><div class="bar-val">-${fmt(v)}</div>`;
+    row.addEventListener('click', () => showStatDetail(k));
     sec.appendChild(row);
   });
 }
+
+window.showStatDetail = function(key) {
+  const txList = statBook === 'shared' ? sharedTxs : privateTxs;
+  const ymStr = ym();
+  const exp = txList.filter(t => t.date && t.date.startsWith(ymStr) && t.type === 'expense');
+  let matched;
+  if (statGroup === 'cat') matched = exp.filter(t => (t.cat || '기타') === key);
+  else if (statGroup === 'person') matched = exp.filter(t => (t.person || '미지정') === key);
+  else matched = exp.filter(t => (t.date.split('-')[2] + '일') === key);
+  matched.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const total = matched.reduce((s, t) => s + t.amount, 0);
+
+  document.getElementById('stat-detail-title').textContent = (statGroup === 'cat' ? cEmoji(key) + ' ' : statGroup === 'person' ? '👤 ' : '📅 ') + key;
+  const list = document.getElementById('stat-detail-list'); list.innerHTML = '';
+  list.insertAdjacentHTML('beforeend', `<div style="text-align:center;padding:2px 0 14px;color:var(--danger);font-weight:600;font-size:15px">-${fmt(total)} · ${matched.length}건</div>`);
+
+  if (!matched.length) {
+    list.insertAdjacentHTML('beforeend', '<div class="tx-empty">내역이 없어요</div>');
+  } else {
+    matched.forEach(tx => {
+      const div = document.createElement('div'); div.className = 'tx-item';
+      div.setAttribute('role', 'button');
+      div.addEventListener('click', function() { hideM('modal-stat-detail'); editTx(tx.id, statBook); });
+      div.innerHTML = `<div class="tx-ico">${cEmoji(tx.cat)}</div><div class="tx-body"><div class="tx-name">${tx.desc}</div><div class="tx-tags"><span class="tag">${curM}월 ${tx.date.split('-')[2]}일</span>${tx.person ? `<span class="tag person">👤 ${tx.person}</span>` : ''}</div></div><div class="tx-amt">-${fmt(tx.amount)}</div>`;
+      list.appendChild(div);
+    });
+  }
+  showM('modal-stat-detail');
+};
 
 function renderCalendar() {
   const ymStr = ym();
